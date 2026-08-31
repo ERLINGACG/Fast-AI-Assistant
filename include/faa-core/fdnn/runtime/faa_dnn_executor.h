@@ -45,6 +45,11 @@ namespace faa::fdnn::rt{
           }
 
           template<typename... Args>
+          B& resetInput(Args&&... args){
+              return backend->resetInput(std::forward<Args>(args)...);
+          }
+
+          template<typename... Args>
           B& postImage(Args&&... args){
               return backend->postImage(std::forward<Args>(args)...);
           }
@@ -54,10 +59,25 @@ namespace faa::fdnn::rt{
               return backend->forward(ctx);
           }
 
+          B& clear(C& ctx){
+              return backend->clear(ctx);
+          }
+
           template<typename... Args>
           B& getOutput(Args&&... args){
               return backend->getOutput(std::forward<Args>(args)...);
           }
+
+          template<typename... Args>
+          B& postProcess(Args&&... args){
+              return backend->postProcess(std::forward<Args>(args)...);
+          }
+
+          std::vector<int64_t> getOutputShapes(const std::string& name,C& ctx){
+              return backend->getOutputShapes(name,ctx);
+          }
+
+
 
     };
 }

@@ -30,9 +30,12 @@ namespace faa::fdnn::fcv::processer::ocr {
         nlohmann::json data;
         auto toString() -> std::string{
              for (const auto& rect : rects){
-                data["rects"].push_back({rect.x,rect.y,rect.width,rect.height});
+                data["rects"].push_back( {std::pair<std::string,float>("x",rect.x),
+                                          std::pair<std::string,float>("y",rect.y),
+                                          std::pair<std::string,float>("width",rect.width),
+                                          std::pair<std::string,float>("height",rect.height)});
              }
-            return data.dump();
+            return "";
 
         };
     };

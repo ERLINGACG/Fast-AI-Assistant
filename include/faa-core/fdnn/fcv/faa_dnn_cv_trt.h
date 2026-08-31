@@ -9,11 +9,11 @@
 #include <opencv2/core/mat.hpp>
 #include "faa-core/faa_export.h"
 namespace faa::fdnn::fcv {
-    struct FaaDetCtx{
+    struct FaaCvCtx{
         gdlz::trt::icv::core::TensorRTCvCtx ctx;
     };
 
-    struct FaaDetOutputData{
+    struct FaaCvOutputData{
         gdlz::trt::core::cuda::TensorRTCudaData cuda_data;
 
         [[nodiscard]] auto toLength() const{
@@ -24,19 +24,7 @@ namespace faa::fdnn::fcv {
         }
     };
 
-    // struct FaaDetParam{
-    //     int32_t width;
-    //     int32_t height;
-    //     double  scalefactor;
-    // };
 
-    // struct FaaDetPostParam{
-    //     int32_t height;
-    //     int32_t width;
-    //     float   threshold;
-    //     float   unclip_ratio;
-    //     int32_t PAD;
-    // };
 
 
     class FAA_CPP_EXPORT FaaCvDnnForTensorRT{
@@ -47,16 +35,18 @@ namespace faa::fdnn::fcv {
             FaaCvDnnForTensorRT(const std::string& config_path);
             ~FaaCvDnnForTensorRT()=default;
 
-            FaaCvDnnForTensorRT& setInput (const std::string& name,std::vector<int64_t> shape,FaaDetCtx& ctx);
-            FaaCvDnnForTensorRT& setOutput(const std::string& name,gdlz::trt::core::cuda::DataType dataType,FaaDetCtx& ctx);
+            FaaCvDnnForTensorRT& setInput (const std::string& name,std::vector<int64_t> shape,FaaCvCtx& ctx);
+            FaaCvDnnForTensorRT& setOutput(const std::string& name,gdlz::trt::core::cuda::DataType dataType,FaaCvCtx& ctx);
             FaaCvDnnForTensorRT& initEngine();
-            FaaCvDnnForTensorRT& initCtx  (FaaDetCtx& ctx);
+            FaaCvDnnForTensorRT& initCtx  (FaaCvCtx& ctx);
+            FaaCvDnnForTensorRT& resetInput(const std::string& name, const std::vector<int64_t>& shape,FaaCvCtx& ctx);
+            FaaCvDnnForTensorRT& resetOutput(const std::string& name, FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
+            FaaCvDnnForTensorRT& postImage(const std::string& name,cv::Mat& img,FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
+            FaaCvDnnForTensorRT& clear    (FaaCvCtx& ctx);
+            FaaCvDnnForTensorRT& forward  (FaaCvCtx& ctx);
+            FaaCvDnnForTensorRT& getOutput(const std::string& name,FaaCvOutputData& output,FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
 
-            FaaCvDnnForTensorRT& postImage(const std::string& name,cv::Mat& img,FaaDetCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
-            FaaCvDnnForTensorRT& clear    (FaaDetCtx& ctx);
-            FaaCvDnnForTensorRT& forward  (FaaDetCtx& ctx);
-            FaaCvDnnForTensorRT& getOutput(const std::string& name,FaaDetOutputData& output,FaaDetCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
-
+            std::vector<int64_t> getOutputShapes(const std::string& name,FaaCvCtx& ctx);
             template<typename P,typename... Args>
             FaaCvDnnForTensorRT& preProcess(P& processer,Args&&... args){
                 processer.PreProcess(std::forward<Args>(args)...);

@@ -15,5 +15,6 @@ namespace faa::core::win_utils{
 
     FAA_CPP_EXPORT HWND GetWindowHandle(const std::string& window_name);
     FAA_CPP_EXPORT HWND GetWindowHandleByClass(const std::string& class_name);
+    FAA_CPP_EXPORT HWND GetWindowHandleByName(const std::string& window_name);
 }
 #endif //FASTSCREEN_FAA_WIN_UTILS_H

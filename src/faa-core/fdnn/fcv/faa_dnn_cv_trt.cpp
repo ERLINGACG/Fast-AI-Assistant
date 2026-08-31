@@ -3,6 +3,7 @@
 //
 #include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
 
+#include <iostream>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/dnn/dnn.hpp>
 
@@ -13,7 +14,7 @@ FaaCvDnnForTensorRT::FaaCvDnnForTensorRT(const std::string& config_path){
     this->framework=std::make_unique<TensorRTCvCoreFramework>(config_path.c_str());
 }
 
-FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::setInput(const std::string& name, std::vector<int64_t> shape, FaaDetCtx& ctx){
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::setInput(const std::string& name, std::vector<int64_t> shape, FaaCvCtx& ctx){
     TensorRTCvCoreFramework::RegisterInputLayer(
         ctx.ctx,
         name.c_str(),
@@ -23,7 +24,7 @@ FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::setInput(const std::string& name, std:
 }
 
 FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::setOutput(const std::string& name, gdlz::trt::core::cuda::DataType dataType,
-    FaaDetCtx& ctx) {
+    FaaCvCtx& ctx) {
     TensorRTCvCoreFramework::RegisterOutputLayer(
         ctx.ctx,
         name.c_str(),
@@ -36,10 +37,24 @@ FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::initEngine(){
     return *this;
 }
 
-FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::initCtx(FaaDetCtx& ctx) {
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::initCtx(FaaCvCtx& ctx) {
     framework->CreateCtx(ctx.ctx);
     return *this;
 }
+
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::resetInput(const std::string& name, const std::vector<int64_t>& shape, FaaCvCtx& ctx)
+{
+    TensorRTCvCoreFramework::ResetInputLayer(ctx.ctx,name.c_str(),shape.data(),static_cast<int64_t>(shape.size()));
+    return *this;
+}
+
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::resetOutput(const std::string& name, FaaCvCtx& ctx,
+    gdlz::trt::core::cuda::DataType dataType)
+{
+    TensorRTCvCoreFramework::ResetOutputLayer(ctx.ctx,name.c_str(),dataType);
+    return *this;
+}
+
 
 // FaaOcrForTensorRT& FaaOcrForTensorRT::PreProcess(cv::Mat& img, cv::Mat& blob,const FaaDetParam& param) {
 //     cv::dnn::blobFromImage(img,blob,param.scalefactor,
@@ -50,28 +65,45 @@ FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::initCtx(FaaDetCtx& ctx) {
 
 FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::postImage(
     const std::string& name, cv::Mat& img,
-    FaaDetCtx& ctx,gdlz::trt::core::cuda::DataType dataType
+    FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType
     ) {
 
     TensorRTCvCoreFramework::PostImg(name.c_str(),ctx.ctx,img.data,static_cast<int64_t>(img.total()),dataType);
     return *this;
 }
 
-FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::clear(FaaDetCtx& ctx) {
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::clear(FaaCvCtx& ctx) {
     for(const auto& key : *ctx.ctx.layer_address | std::views::keys){
         TensorRTCvCoreFramework::FreeLayer(ctx.ctx,key.c_str());
     }
     return *this;
 }
 
-FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::forward(FaaDetCtx& ctx){
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::forward(FaaCvCtx& ctx){
     TensorRTCvCoreFramework::Forward(ctx.ctx);
     return *this;
 }
 
-FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::getOutput(const std::string& name,FaaDetOutputData& output, FaaDetCtx& ctx,gdlz::trt::core::cuda::DataType dataType){
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::getOutput(const std::string& name,FaaCvOutputData& output, FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType){
+    // std::vector<int64_t> shape;
+    // auto  data_len=TensorRTCvCoreFramework::GetOutputShape(name.c_str(),ctx.ctx);
+    // auto* data_prt=TensorRTCvCoreFramework::GetOutputShapes(name.c_str(),ctx.ctx);
+    // shape.assign(data_prt,data_prt+data_len);
+    // for (auto i : shape){
+    //     std::cout<<"Shape "<<"["<<i<<"],";
+    // }
+    // std::cout<<std::endl;
     TensorRTCvCoreFramework::GetOutput(name.c_str(),ctx.ctx,output.cuda_data,dataType);
     return *this;
+}
+
+std::vector<int64_t> FaaCvDnnForTensorRT::getOutputShapes(const std::string& name, FaaCvCtx& ctx)
+{
+    std::vector<int64_t> shape;
+    auto  data_len=TensorRTCvCoreFramework::GetOutputShape(name.c_str(),ctx.ctx);
+    auto* data_prt=TensorRTCvCoreFramework::GetOutputShapes(name.c_str(),ctx.ctx);
+    shape.assign(data_prt,data_prt+data_len);
+    return shape;
 }
 
 // FaaOcrForTensorRT& FaaOcrForTensorRT::PostProcess(float* host_float, cv::Mat org_mat, const FaaDetPostParam& param,

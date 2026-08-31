@@ -8,6 +8,32 @@
 #include "faa-core/faa_data.h"
 #include "faa-core/win_utils/faa_win_utils.h"
 #include "faa-utlis/fs_json_utils.h"
+#include "faa_service/faa_service_operation.h"
+#include "faa_service/faa_service_task.h"
+#include "../../include/faa_service/runtime/faa_servuce_runtime_init.h"
+
+int faa::service::FAAServiceUDP::resource_config(std::string config_path){
+    try{
+        std::ifstream file(config_path);
+        if (!file.is_open()) {
+            log.error("Cannot open config file: {}", config_path);
+            return -1;
+        }
+        file >> resources_config_json;   // 直接用 operator>> 读取 JSON
+        // if (resources_config_json.contains("ocr_config")){
+        //     model_resource_config.ocr_det_path=resources_config_json["ocr_config"]["ocr_det_path"];
+        //     model_resource_config.ocr_rec_path=resources_config_json["ocr_config"]["ocr_rec_path"];
+        //     log.debug("model_resource_config.ocr_det_path: {}", model_resource_config.ocr_det_path);
+        //     log.debug("model_resource_config.ocr_rec_path: {}", model_resource_config.ocr_rec_path);
+        //
+        // }
+        file.close();
+    }catch (std::exception& e){
+        this->log.error("parse config file failed: {}", e.what());
+        return -1;
+    }
+    return 0;
+}
 
 int faa::service::FAAServiceUDP::init() {
     this->log.info("FastScreenFsService init to {}:{}",
@@ -94,9 +120,8 @@ int faa::service::FAAServiceUDP::run_loop() {
                 // 不打印错误，直接退出循环
                 this->log.info("the loop is exit");
                 break;
-            }else{
-                this->log.error("recvfrom failed: {}", error);
             }
+            this->log.error("recvfrom failed: {}", error);
             break;
         }
 
@@ -104,70 +129,140 @@ int faa::service::FAAServiceUDP::run_loop() {
         std::string json_str(buffer.data(), bytes_received);
         sockaddr_in client_copy = client_addr;
 
+
         this->thread_pool->enqueue([this, json_str = std::move(json_str), client_copy](){
+           char ip[46];
+           inet_ntop(AF_INET, &client_copy.sin_addr, ip, sizeof(ip));
+           int port = ntohs(client_copy.sin_port);
+           this->log.info("recvfrom {}:{} message: {}", ip, port, json_str);
 
-            char ip[46];
-            inet_ntop(AF_INET, &client_copy.sin_addr, ip, sizeof(ip));
-            int port = ntohs(client_copy.sin_port);
-            this->log.info("recvfrom {}:{} message: {}", ip, port, json_str);
+           auto data=core::data::EvenTStruct{};
 
-            auto data=core::data::RequestData{};
-            utils::json::json_to_obj(data, json_str);
-            this->log.info("target_key: {}", data.target_key);
-            std::lock_guard lock(this->window_capture_mutex);
-            auto it = window_capture.find(data.target_key);
-            if (it == window_capture.end()) {
-               this->log.debug("the windows is first access to {}", data.target_key);
-                auto d3d_ctx=core::cap::wgc::D3DDeviceContext();
-                auto wgc_rt=core::cap::wgc::WGCRunTimeContext();
+           utils::json::json_to_obj(data, json_str);
 
-                auto wgc_cap=core::cap::wgc::FAAWindowCapture(data.target_key, this->log).
-                      initD3d11(d3d_ctx).
-                      initWgcRtCtx(wgc_rt).
-                      startSession();
+            auto init=[&](){
+                 if (!this->ocr_resources.contains(data.target_key)){
+                     auto ocr_resources=std::make_unique<rt::FaaServiceOcrResources>();
+                     try{
+                         rt::init::faa_ocr_init(*ocr_resources, resources_config_json["ocr_config"]);
+                     }
+                     catch (std::exception& e){
+                         this->log.error("faa_ocr_init failed: {}", e.what());
+                         return;
+                     }
+                     this->ocr_resources.emplace(data.target_key, std::move(ocr_resources));
+                 }
+            };
 
-                if (!wgc_cap.is_init()){
-                    this->log.error("the windows not found to {}", data.target_key);
-                    return;
+            init();
+            std::cout<<""<<std::endl;
+            switch (task::task_operation_map[data.task_type]){
+                case task::RunWGC: {
+                        const auto wgc_cap=std::make_unique<rt::FaaWgcCapResources>();
+                        rt::init::faa_wgc_init(*wgc_cap, data.target_key, this->log);
+                        operation::wgc_run(
+                            this->frame_mutex,
+                            this->is_running,data.target_key,
+                            this->frames_map,*wgc_cap
+                        );
+                        break;
                 }
-                this->window_capture.emplace(data.target_key, std::move(wgc_cap));
+                case task::GetImg:{
+                        operation::get_img(
+                        this->frame_mutex,data.target_key,
+                         this->frames_map
+                    );
+                    break;
+                }
+                case task::GetOCR:{
+                        FaaSerOcrResult result{};
+                    //     operation::get_to_ocr(
+                    //     *this->ocr_resources[data.target_key],
+                    //     this->frame_mutex,data.target_key,
+                    //      this->frames_map,result
+                    // );
+                    break;
+                }
+                case task::Win32_NoDet:{
+
+
+                    for (const auto& info:data.input_list){
+
+                        if (info.move_x!=-1 && info.move_y!=-1){
+                            const auto is_click=info.is_click;
+                            operation::set_input_win32_mouse(data.target_key,this->win32_inputs,{
+                                    .mouse_x=info.move_x,
+                                    .mouse_y=info.move_y,
+                                    // .enable_smooth_move=info.enable_smooth_move,
+                            },is_click);
+                        }
+
+                        if (!info.key_name.empty()){
+                            operation::set_input_win32_key(data.target_key,this->win32_inputs,{
+                                .delay_time = info.delay_time,
+                                .key_name   =info.key_name.c_str(),
+                            });
+                        }
+
+                    }
+                    break;
+                 }
+                case task::NoTask:{
+                    break;
+                }
+
+                default:
+                    break;
             }
 
-            auto& cap = this->window_capture.at(data.target_key);
-            this->log.debug("the windows not first access to {}", data.target_key);
-            this->window_capture_mutex.unlock();
-            int count=0;
-            cv::Mat mat;
-            auto texture_data=core::cap::wgc::WgcTextureData();
-            while (mat.empty()){
-                cap.getFrame(texture_data, mat);
-                this->log.debug("getFrame failed, try again, count: {}", count++);
+            if (data.task_type == "get") {
+
             }
-
-
-            if (mat.empty()){
-                this->log.error("getFrame failed");
-                return;
-            }
-            this->log.info("getFrame success");
-            this->log.info("mat size: {}, {}", mat.rows, mat.cols);
-            std::string filename = "capture_" + std::to_string(std::time(nullptr)) + ".png";
-            if (cv::imwrite(filename, mat)) {
-                this->log.info("Frame saved to {}", filename);
-            } else {
-                this->log.error("Failed to save frame");
-            }
-
-
-            std::string response="success";
-            sendto(this->runtime.server_socket,
-                   response.c_str(),
-                   static_cast<int32_t>(response.size()),
-                    0,
-                       reinterpret_cast<const sockaddr*>(&client_copy),
-                sizeof(client_copy)
-           );
-
+            // if (data.task_type == "run"){
+            //     sendto(this->runtime.server_socket,
+            //        response.c_str(),
+            //        static_cast<int32_t>(response.size()),
+            //         0,
+            //            reinterpret_cast<const sockaddr*>(&client_copy),
+            //     sizeof(client_copy)
+            //     );
+            //     int count=0;
+            //     while (is_running){
+            //         auto frame = rt::FaaFrame{};
+            //         get_frame(*resources.find(data.target_key)->second, frame);
+            //         std::lock_guard lock(this->frame_mutex);
+            //         if(!frames_map.contains(data.target_key)){
+            //             frames_map.emplace(data.target_key, std::vector<cv::Mat>{});
+            //         }
+            //         frames_map[data.target_key].push_back(frame.frame);
+            //         if (frames_map[data.target_key].size()>3){
+            //             frames_map[data.target_key].erase(frames_map[data.target_key].begin());
+            //         }
+            //         count++;
+            //     }
+            // }
+            // if (data.task_type=="get"){ auto
+            //     frame = rt::FaaFrame{};
+            //     std::lock_guard lock(this->frame_mutex);
+            //
+            //     if ( frames_map.contains(data.target_key) && !frames_map[data.target_key].empty()){
+            //                   frame.frame=frames_map[data.target_key].back();
+            //     }
+            //     if (frame.frame.empty()){
+            //         return;
+            //     }
+            //     FaaSerOcrResult result;
+            //     ocr_proc_frame(*resources.find(data.target_key)->second, frame,result);
+            //     auto all_res_str=result.toString();
+            //     sendto(this->runtime.server_socket,
+            //        all_res_str.c_str(),
+            //        static_cast<int32_t>(all_res_str.size()),
+            //         0,
+            //              reinterpret_cast<const sockaddr*>(&client_copy),
+            //         sizeof(client_copy)
+            //     );
+            //
+            // }
 
         });
 

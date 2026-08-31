@@ -24,6 +24,8 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
     return TRUE;  // 继续枚举
 }
 
+
+
 HWND faa::core::win_utils::GetWindowHandle(const std::string& window_name) {
 
     if (window_name.empty()) return nullptr;
@@ -56,4 +58,21 @@ HWND faa::core::win_utils::GetWindowHandleByClass(const std::string& class_name)
     if (!wname.empty() && wname.back() == L'\0') wname.pop_back();
 
     return FindWindowW(wname.c_str(), nullptr); // 直接通过类名查找
+}
+
+HWND faa::core::win_utils::GetWindowHandleByName(const std::string& window_name)
+{
+    if (window_name.empty()) return nullptr;
+
+    int len = MultiByteToWideChar(CP_UTF8, 0, window_name.c_str(), -1, nullptr, 0);
+    if (len == 0) return nullptr;
+    std::wstring wname(len, L'\0');
+    MultiByteToWideChar(
+        CP_UTF8, 0,
+        window_name.c_str(), -1, &wname[0], len
+        );
+    if (!wname.empty() && wname.back() == L'\0') wname.pop_back();
+
+   return FindWindowW(nullptr, wname.c_str());
+
 }

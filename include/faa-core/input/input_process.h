@@ -4,13 +4,15 @@
 
 #ifndef FASTSCREEN_INPUT_PROCESS_H
 #define FASTSCREEN_INPUT_PROCESS_H
-namespace faa::input{
-    class InputProcess {
-        public:
-         InputProcess()=default;
-         ~InputProcess()=default;
+#include <memory>
 
-         // template<typename T,>
+namespace faa::input{
+    template<typename I>
+    class InputProxy {
+        I& inputer;
+        public:
+            explicit InputProxy(I& inputer):inputer(inputer){}
+
     };
 }
 #endif //FASTSCREEN_INPUT_PROCESS_H

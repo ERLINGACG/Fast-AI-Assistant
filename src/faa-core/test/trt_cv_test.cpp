@@ -112,42 +112,62 @@ auto run_test(const std::string& config,cv::Mat& img){
 auto run_test2(){
     using faa::fdnn::fcv::FaaCvDnnForTensorRT;
     using faa::fdnn::rt::FaaDnnExecutor;
-    using faa::fdnn::fcv::FaaDetCtx;
-    using faa::fdnn::fcv::FaaDetOutputData;
+    using faa::fdnn::fcv::FaaCvCtx;
+    using faa::fdnn::fcv::FaaCvOutputData;
     using faa::fdnn::fcv::processer::ocr::FaaOcrDetProc;
     using faa::fdnn::fcv::processer::ocr::FaaDetPreParam;
     using faa::fdnn::rt::code::FaaDnnRtCode;
     using faa::fdnn::fcv::processer::ocr::DetResult;
     using faa::fdnn::fcv::processer::ocr::FaaDetPostParam;
+    using faa::fdnn::fcv::processer::ocr::FaaOcrRecProc;
+    using faa::fdnn::fcv::processer::ocr::FaaResParam;
+    using faa::fdnn::fcv::processer::ocr::FaaResResult;
+    using faa::fdnn::fcv::processer::ocr::FaaPostParam;
     cv::Mat blob;
-    cv::Mat img=cv::imread("test1.png",cv::IMREAD_COLOR);
+    cv::Mat img=cv::imread("img.png",cv::IMREAD_COLOR);
 
 
-    FaaDnnExecutor<FaaCvDnnForTensorRT,FaaDetCtx> executor(
-        std::make_unique<FaaCvDnnForTensorRT>("./config/trt_ocr.json"));
+    FaaDnnExecutor<FaaCvDnnForTensorRT,FaaCvCtx> det_executor(
+        std::make_unique<FaaCvDnnForTensorRT>("./config/trt_ocr.json")
+        );
 
-    auto proc=FaaOcrDetProc();
-    auto ctx=FaaDetCtx();
-    auto output=FaaDetOutputData();
+    FaaDnnExecutor<FaaCvDnnForTensorRT,FaaCvCtx> res_executor(
+        std::make_unique<FaaCvDnnForTensorRT>("./config/trt_ocr_res.json")
+        );
+
+    auto det_proc=FaaOcrDetProc();
+    auto res_proc=FaaOcrRecProc("./ppocr_keys_v1.txt");
+
+    auto det_ctx=FaaCvCtx();
+    auto res_ctx=FaaCvCtx();
+    auto det_output=FaaCvOutputData();
+
     auto code=FaaDnnRtCode::Success;
     auto result=DetResult();
 
-    executor.initEngine();
-    executor.initCtx(ctx);
+    det_executor.initEngine();
+    det_executor.initCtx(det_ctx);
 
-    executor.setInput("x",{1,3,640,640},      ctx);
-    executor.setOutput("fetch_name_0",DataType::FLOAT32,ctx).
-             preProcess(proc,
+    res_executor.initEngine();
+    res_executor.initCtx(res_ctx);
+
+    res_executor.setInput("x",{1,3,48,320},      res_ctx);
+    res_executor.setOutput("fetch_name_0",DataType::FLOAT32,res_ctx);
+
+    det_executor.setInput("x",{1,3,640,640},      det_ctx);
+    det_executor.setOutput("fetch_name_0",DataType::FLOAT32,det_ctx).
+
+             preProcess(det_proc,
                  img,blob,FaaDetPreParam{
                     .width = 640,
                     .height = 640,
                     .scalefactor = 1/255.0
                 },code);
 
-    executor.postImage("x",blob,ctx,DataType::FLOAT32);
-    executor.forward(ctx)
-          .getOutput("fetch_name_0",output,ctx,DataType::FLOAT32)
-          .postProcess(proc,static_cast<float*>(output.toHost()),
+    det_executor.postImage("x",blob,det_ctx,DataType::FLOAT32);
+    det_executor.forward(det_ctx)
+          .getOutput("fetch_name_0",det_output,det_ctx,DataType::FLOAT32)
+          .postProcess(det_proc,static_cast<float*>(det_output.toHost()),
             img,FaaDetPostParam{
                 .width = 640,
                 .height = 640,
@@ -158,13 +178,42 @@ auto run_test2(){
 
 
     cv::imwrite("test_v4.png",img);
-    std::cout<<result.toString()<<std::endl;
+    int c=0;
+    auto output=FaaCvOutputData();
+    for (auto& rect : result.rects){
+        c++;
 
-    // auto host_float=static_cast<float*>(output.toHost());
-    // auto len=output.toLength();
-    //
-    // std::cout<<"len:"<<len<<std::endl;
+        cv::Mat cropped = img(rect).clone();
+        cv::Mat _blob;
+        auto res_result=FaaResResult();
+        res_executor.preProcess(res_proc,cropped,_blob,FaaResParam{
+            .width = 320,
+            .height = 48,
+            .scalefactor = 1 / 255.0
+        },code).
+        postImage("x",_blob,res_ctx,DataType::FLOAT32);
+        res_executor.forward(res_ctx);
+        res_executor.getOutput("fetch_name_0",output,res_ctx,DataType::FLOAT32);
+        res_proc.PostProcess(static_cast<float*>(output.toHost()),FaaPostParam{
+            .model_vocal_size = 18385,
+            .seq_len = 40,
+        },res_result,code);
+        std::string text;
+        for (auto& id : res_result.ids){
+            if (id-1<res_proc.get_vocal().size()){
+                text+=res_proc.get_vocal()[id-1];
+            }
+        }
+        std::cout<<"文本："<<text<<"，坐标："<<rect.x<<","<<rect.y<<","<<rect.width<<","<<rect.height<<std::endl;
 
+    }
+    res_executor.clear(res_ctx);
+    delete[] static_cast<float*>(output.cuda_data.data);
+
+}
+auto run_test3(){
+    using faa::fdnn::fcv::processer::ocr::FaaOcrRecProc;
+    auto proc= FaaOcrRecProc("./ppocr_keys_v1.txt");
 
 }
 int main(){

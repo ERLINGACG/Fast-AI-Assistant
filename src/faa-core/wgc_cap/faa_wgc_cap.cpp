@@ -76,9 +76,19 @@ FAAWindowCapture& FAAWindowCapture::initWgcRtCtx(WGCRunTimeContext run_time_ctx)
      this->log.debug("initWgcRtCtx for window: {}", this->target_window_name);
      this->target_window_handle=win_utils::GetWindowHandle(this->target_window_name);
      if (this->target_window_handle==nullptr){
-         this->log.error("this->target_window_handle query failed ");
+         this->log.debug("try find to windows by class");
+         this->target_window_handle=win_utils::GetWindowHandleByClass(this->target_window_name);
+     }
+     if (this->target_window_handle==nullptr){
+         this->log.debug("try find to windows by name");
+         this->target_window_handle=win_utils::GetWindowHandleByName(this->target_window_name);
+     }
+     if (this->target_window_handle==nullptr){
+         this->log.error("this target_window_handle query failed ");
+         this->is_init_=false;
          return *this;
      }
+     this->is_init_=true;
 
      auto interopFactory = winrt::get_activation_factory<
              winrt::Windows::Graphics::Capture::GraphicsCaptureItem,
@@ -91,6 +101,7 @@ FAAWindowCapture& FAAWindowCapture::initWgcRtCtx(WGCRunTimeContext run_time_ctx)
      );
      if (FAILED(hr)) {
          this->log.error("CreateForWindow failed: {}", hr);
+         this->is_init_=false;
          return *this;
      }
      this->log.debug("CreateForWindow success");
@@ -106,15 +117,25 @@ FAAWindowCapture& FAAWindowCapture::initWgcRtCtx(WGCRunTimeContext run_time_ctx)
 
 FAAWindowCapture& FAAWindowCapture::startSession(){
      this->log.debug("startSession");
+     if (this->is_init()==false) {
+         this->log.error("is_init failed");
+         return *this;
+     }
+     if (this->run_time_ctx.framePool==nullptr){
+         this->log.error("run_time_ctx.framePool is nullptr");
+         return  *this;
+     }
+
      this->run_time_ctx.session= this->run_time_ctx.framePool.CreateCaptureSession(this->run_time_ctx.captureItem);
      this->run_time_ctx.session.StartCapture();
      this->log.debug("startSession success");
      return *this;
+     // }
 }
 
 FAAWindowCapture& FAAWindowCapture::getFrame(WgcTextureData& texture_data, cv::Mat& mat)
 {
-     this->log.debug("getFrame");
+     // this->log.debug("getFrame");
      if (auto frame = run_time_ctx.framePool.TryGetNextFrame()){
          auto surface = frame.Surface();
          winrt::com_ptr<ID3D11Texture2D> capturedTexture;
