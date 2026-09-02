@@ -24,6 +24,7 @@ function(build_cloud_lib)
     set(FAA-C-SOURCES
             network/faa_cloud_network.cpp
             common/frame/faa_cloud_wgc_loop.cpp
+            common/input/faa_cloud_win32_input.cpp
     )
     add_library(FaaCloud SHARED ${FAA-C-SOURCES})
     add_definitions(-DNOMINMAX)

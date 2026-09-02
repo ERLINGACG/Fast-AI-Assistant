@@ -5,6 +5,7 @@ set(FAA_ARKNIGHTS_MS_SOURCES
         faa_arknights_run.cpp
         service/faa_cloud_arknights_service.cpp
         service/faa_cloud_arknights_operator.cpp
+        service/faa_cloud_arknights_async_operator.cpp
 )
 
 

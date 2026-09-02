@@ -7,7 +7,8 @@ using faa::cloud::microservices::arknigths::FaaArknightsService;
 
 
 FaaArknightsService& FaaArknightsService::setOperator(info::log::Ilog& log){
-    auto get_to_frame_for_wgc=[this,&log](){
+
+    auto get_to_frame_for_wgc=[this,&log](nlohmann::json& requires_info,sockaddr_in& response_addr){
         if (this->get_frames_running.load()){
             return;
         }
@@ -21,10 +22,19 @@ FaaArknightsService& FaaArknightsService::setOperator(info::log::Ilog& log){
                 this->config_.value("max_fps_rate",3)
             );
         });
-        this->get_frames_thread.join();
+        this->get_frames_thread.detach();
 
     };
-    this->operator_map["get_frame_wgc"]=get_to_frame_for_wgc;
+
+    auto set_sleep=[this,&log](nlohmann::json& requires_info,sockaddr_in& response_addr){
+        int32_t sleep=requires_info.value("sleep",0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
+    };
+
+    this->operator_map["sleep"]=set_sleep;
+    this->operator_map["wgc"]=get_to_frame_for_wgc;
 
     return *this;
 }
+
+

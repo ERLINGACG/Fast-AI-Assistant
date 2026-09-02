@@ -12,11 +12,13 @@ int main(){
     config["core_service_port"]=8080;
     config["ip"]="127.0.0.1";
     config["port"]=8081;
+    config["target"]="明日方舟";
+
 
     config["ms_info"]=nlohmann::json{
         {"service_name","arknights"},
         {"service_type","arknights"},
-        {"operation","register"},
+        {"route_operation","register"},
     };
     auto log=info::log::Ilog([&](){
         return info::log::IlogInit{
@@ -31,7 +33,10 @@ int main(){
     service.setConfig(config);
     service.
         setNetwork(std::make_unique<FaaCloudNetwork>(FaaCloudNetwork(log).init(config))).
-        initThreadPool(std::make_unique<faa::core::thread_pool::FAAThreadPool>());
+        initThreadPool(std::make_unique<faa::core::thread_pool::FAAThreadPool>()).
+        setOperator(log).
+        setAsyncOperator(log);
+
     service.start(log);
 
     if (!service.isInitialized()){

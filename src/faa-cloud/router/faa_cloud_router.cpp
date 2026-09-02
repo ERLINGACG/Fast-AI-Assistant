@@ -174,11 +174,11 @@ void FaaCloudRouter::loop(info::log::Ilog& logger)  {
 
                         nlohmann::json requires_info=nlohmann::json::parse(message);
 
-                        if (!requires_info.contains("operation")){
+                        if (!requires_info.contains("route_operation")){
                             return;
                         }
 
-                        auto operator_func=this->operator_map.find(requires_info.value("operation",""));
+                        const auto operator_func=this->operator_map.find(requires_info.value("route_operation",""));
                         if (operator_func!=this->operator_map.end()){
                             operator_func->second(requires_info,const_cast<sockaddr_in&>(client_addr));
                         }else{

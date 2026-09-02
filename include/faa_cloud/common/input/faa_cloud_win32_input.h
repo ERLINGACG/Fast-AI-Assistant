@@ -1,0 +1,46 @@
+//
+// Created by HP on 2026/9/2.
+//
+
+#ifndef FASTSCREEN_FAA_CLOUD_WIN32_INPUT_H
+#define FASTSCREEN_FAA_CLOUD_WIN32_INPUT_H
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <nlohmann/json.hpp>
+#include "faa-core/faa_export.h"
+#include "faa-core/input/windows_input.h"
+
+namespace faa::cloud::common::input::win32{
+
+
+
+
+    struct FAA_CPP_EXPORT  FaaCloudWin32Input{
+
+        using input_type= std::unique_ptr<faa::input::windows::WindowsInput>;
+        using operator_map = std::map<std::string,std::function<void(const nlohmann::json& requires_info)>>;
+
+        operator_map operators;
+        input_type input;
+        std::mutex mtx;
+
+
+        FaaCloudWin32Input();
+
+        auto set(input_type input){
+            this->input=std::move(input);
+        }
+
+        [[nodiscard]] auto isInit() const{
+            return input!=nullptr;
+        }
+
+
+        void moveMouse(const nlohmann::json& requires_info);
+
+    };
+
+
+}
+#endif //FASTSCREEN_FAA_CLOUD_WIN32_INPUT_H

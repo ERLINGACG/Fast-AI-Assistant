@@ -103,8 +103,8 @@ void FaaArknightsService::loop(info::log::Ilog& log) {
                     if (!msg_json.contains("info")){
                         return;
                     }
-                    const auto response_ip  =msg_json["info"].value("requires_ip","");
-                    const auto response_port    =msg_json["info"].value("requires_port",0);
+                    const auto response_ip      =msg_json["info"].value("requires_ip","");
+                    const auto response_port       =msg_json["info"].value("requires_port",0);
 
                     sockaddr_in response_addr{};
                     if (!response_ip.empty()){
@@ -116,25 +116,21 @@ void FaaArknightsService::loop(info::log::Ilog& log) {
                         response_addr=target_addr;
                     }
 
-                    const auto operator_detail=msg_json["info"].value("requires_detail",nlohmann::json());
-                    // if (operator_detail.empty()){
-                    log.info("operator_detail : {}",operator_detail.dump());
-                        // return;
-                    // }
+                   auto requires_detail=msg_json["info"].value("requires_detail",nlohmann::json());
+                   log.info("requires_detail : {}",requires_detail.dump());
 
-                    auto ack      = net_work::FaaCloudNetworkAck();
-                    auto ack_json=nlohmann::json();
-                    ack_json["hello"]="world";
-                    ack.unserialize("success",ack_json);
-                    this->network_->sendMessage(ack.serialize(),response_addr);
+
+                     auto operator_func=this->operator_map.find(requires_detail.value("operation",""));
+                     if (operator_func!=this->operator_map.end()){
+                          operator_func->second(requires_detail,response_addr);
+                     }else{
+                          log.error("unknown operation: {}",requires_detail.value("operation",""));
+                     }
+
 
               }catch (std::exception& e){
                   log.error("parse msg_str failed: {}",e.what());
               }
-
-
-
-
          });
     }
 }
