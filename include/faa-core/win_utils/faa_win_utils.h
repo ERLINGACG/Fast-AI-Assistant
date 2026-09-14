@@ -4,6 +4,7 @@
 
 #ifndef FASTSCREEN_FAA_WIN_UTILS_H
 #define FASTSCREEN_FAA_WIN_UTILS_H
+#define WIN32_LEAN_AND_MEAN
 #include <string>
 
 #include "faa-core/faa_export.h"

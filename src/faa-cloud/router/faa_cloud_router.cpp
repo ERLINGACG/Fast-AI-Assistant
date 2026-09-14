@@ -15,6 +15,7 @@ FaaCloudRouter& FaaCloudRouter::initThreadPool(){
 }
 
 FaaCloudRouter& FaaCloudRouter::initOperatorHandler(){
+
     auto handler_register=[this](nlohmann::json& requires_detail, sockaddr_in& addr){
         return this->registerMs(requires_detail,addr);
     };
@@ -119,9 +120,18 @@ bool FaaCloudRouter::queryMsInfo(nlohmann::json& ms_info, sockaddr_in& addr){
 
 bool FaaCloudRouter::routeMsInfo(nlohmann::json& requires_json, sockaddr_in& addr){
 
-    if (requires_json.contains("id_str")){
-        const auto ms=this->register_mapper.getMsInfo(requires_json["id_str"].get<std::string>());
+    if (requires_json.contains("name_str")){
+        const auto ms=this->register_mapper.getMsInfo(requires_json["name_str"].get<std::string>());
+        auto ack=net_work::FaaCloudNetworkAck();
+        auto send_client_json=nlohmann::json();
+
         if (ms.name.empty()){
+            send_client_json["error"]="ms not found";
+            ack.unserialize("register failed",send_client_json);
+            this->network->sendMessage(
+                ack.serialize(),
+                addr
+            );
             return false;
         }
 
@@ -129,8 +139,6 @@ bool FaaCloudRouter::routeMsInfo(nlohmann::json& requires_json, sockaddr_in& add
         const std::string requester_ip(inet_ntop(AF_INET,&(addr.sin_addr), ip_str,INET_ADDRSTRLEN));
         const uint16_t requester_port = ntohs(addr.sin_port);
 
-        auto ack=net_work::FaaCloudNetworkAck();
-        auto send_client_json=nlohmann::json();
 
         send_client_json["requires_ip"]      =requester_ip;
         send_client_json["requires_port"]   =requester_port;
@@ -177,12 +185,21 @@ void FaaCloudRouter::loop(info::log::Ilog& logger)  {
                         if (!requires_info.contains("route_operation")){
                             return;
                         }
-
+                        auto ack =net_work::FaaCloudNetworkAck();
                         const auto operator_func=this->operator_map.find(requires_info.value("route_operation",""));
+
                         if (operator_func!=this->operator_map.end()){
                             operator_func->second(requires_info,const_cast<sockaddr_in&>(client_addr));
                         }else{
-                            logger.error("unknown operation: {}",requires_info.value("operation",""));
+
+                            ack.unserialize(
+                                "unknown operation",
+                                nlohmann::json(
+                                    {"operation",requires_info.value("route_operation","")}
+                                )
+                            );
+                            this->network->sendMessage(ack.serialize(),client_addr);
+                            logger.error("unknown operation: {}",requires_info.value("route_operation",""));
                         }
 
                     }catch(std::exception& e){

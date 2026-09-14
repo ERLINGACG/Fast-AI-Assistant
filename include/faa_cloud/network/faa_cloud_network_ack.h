@@ -13,9 +13,10 @@ namespace faa::cloud::net_work{
         auto serialize()const{
             return data.dump();
         }
-        auto unserialize(const std::string& state, const nlohmann::json& info){
+        auto& unserialize(const std::string& state, const nlohmann::json& info){
             data["state"]=state;
             data["info"] = info;
+            return *this;
         }
     };
 }

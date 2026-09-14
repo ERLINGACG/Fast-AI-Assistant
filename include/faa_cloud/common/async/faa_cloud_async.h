@@ -35,7 +35,8 @@ namespace faa::cloud::common::async{
         auto addTask(AsyncTask& task,F&& callback){
             std::lock_guard lock(mutex);
             task.status="started";
-            tasks[id.fetch_add(1)]=task;
+            task.id=id.fetch_add(1);
+            tasks[task.id]=task;
             callback();
         }
 

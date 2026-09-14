@@ -25,8 +25,6 @@ namespace faa::fdnn::fcv {
     };
 
 
-
-
     class FAA_CPP_EXPORT FaaCvDnnForTensorRT{
         protected:
 
@@ -39,7 +37,7 @@ namespace faa::fdnn::fcv {
             FaaCvDnnForTensorRT& setOutput(const std::string& name,gdlz::trt::core::cuda::DataType dataType,FaaCvCtx& ctx);
             FaaCvDnnForTensorRT& initEngine();
             FaaCvDnnForTensorRT& initCtx  (FaaCvCtx& ctx);
-            FaaCvDnnForTensorRT& resetInput(const std::string& name, const std::vector<int64_t>& shape,FaaCvCtx& ctx);
+            FaaCvDnnForTensorRT& resetInput (const std::string& name, const std::vector<int64_t>& shape,FaaCvCtx& ctx);
             FaaCvDnnForTensorRT& resetOutput(const std::string& name, FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
             FaaCvDnnForTensorRT& postImage(const std::string& name,cv::Mat& img,FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
             FaaCvDnnForTensorRT& clear    (FaaCvCtx& ctx);
@@ -47,6 +45,7 @@ namespace faa::fdnn::fcv {
             FaaCvDnnForTensorRT& getOutput(const std::string& name,FaaCvOutputData& output,FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
 
             std::vector<int64_t> getOutputShapes(const std::string& name,FaaCvCtx& ctx);
+
             template<typename P,typename... Args>
             FaaCvDnnForTensorRT& preProcess(P& processer,Args&&... args){
                 processer.PreProcess(std::forward<Args>(args)...);

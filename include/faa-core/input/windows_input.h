@@ -11,6 +11,8 @@
 #include <windows.h>
 #include "faa-core/faa_export.h"
 namespace faa::input::windows{
+
+
     struct InputKeyInfo{
         bool isPost = false;
         int32_t delay_time{};
@@ -29,21 +31,23 @@ namespace faa::input::windows{
         int32_t delay_time;
         std::string click_type_name;
     };
+
     struct MouseInfo{
            int32_t mouse_x{};
            int32_t mouse_y{};
            int32_t enable_smooth_move = 1;
            int32_t is_client_coord = 0;
-           // ClickMouseInfo click_info{};
+
     };
 
     struct RotateMouseInfo {
-        double sensitivity{};
-        double angleX{};
-        double angleY{};
-        int32_t step{};
-        int32_t delay_time{};
-        // int32_t is_client_coord = 0;
+
+        double sensitivity{}; // 旋转灵敏度
+        double angleX{};     // 水平旋转角度
+        double angleY{};     // 垂直旋转角度
+        int32_t step{};      // 旋转步长
+        int32_t delay_time{}; // 旋转延迟时间
+
         [[nodiscard]] auto totalDx() const{
             return static_cast<int>(angleX * sensitivity);
         }
@@ -59,6 +63,15 @@ namespace faa::input::windows{
          int32_t step;
          int32_t step_delay;
     };
+
+
+    struct RollMouseInfo {
+        int delta = 0;           // 总滚动量，单位 WHEEL_DELTA(120)，正上/负下，水平时正右/负左
+        int step = 1;            // 分几步发送
+        int step_delay = 10;     // 每步间隔 ms
+        bool horizontal = false; // false=垂直滚轮，true=水平滚轮
+    };
+
 
     class FAA_CPP_EXPORT WindowsInput {
         HWND handle_;
@@ -105,9 +118,9 @@ namespace faa::input::windows{
             int simulateMouseMoveToCenter();
             int moveMouse(const MouseInfo& mouse_info);
             int rotateMouse(const RotateMouseInfo& rotate_info); // 旋转鼠标
-            int clickMouse(const ClickMouseInfo& click_info); // 点击鼠标
-            int dragMouse(const DragMouseInfo& drag_info);
-
+            int clickMouse(const ClickMouseInfo& click_info);   // 点击鼠标
+            int dragMouse(const DragMouseInfo& drag_info);     // 拖动鼠标
+            int rollMouse(const RollMouseInfo& roll_info);     // 滚动鼠标
 
 
     };

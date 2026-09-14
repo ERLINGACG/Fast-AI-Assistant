@@ -261,8 +261,6 @@ int WindowsInput::clickMouse(const ClickMouseInfo& click_info) {
             break;
         }
 
-
-    // SendInput(1, &input, sizeof(INPUT));
     return 0;
 }
 
@@ -334,6 +332,12 @@ int WindowsInput::dragMouse(const DragMouseInfo& drag_info) {
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     SendInput(1, &end_down, sizeof(INPUT));
+    return 0;
+}
+
+int WindowsInput::rollMouse(const RollMouseInfo& roll_info){
+    this->activateWindow();
+
     return 0;
 }
 

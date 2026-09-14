@@ -21,6 +21,7 @@ namespace faa::cloud::common::input::win32{
         using input_type= std::unique_ptr<faa::input::windows::WindowsInput>;
         using operator_map = std::map<std::string,std::function<void(const nlohmann::json& requires_info)>>;
 
+
         operator_map operators;
         input_type input;
         std::mutex mtx;
@@ -37,7 +38,11 @@ namespace faa::cloud::common::input::win32{
         }
 
 
-        void moveMouse(const nlohmann::json& requires_info);
+        void moveMouse  (const nlohmann::json& requires_info);
+        void sendInput  (const nlohmann::json& requires_info);
+        void rotateMouse(const nlohmann::json& requires_info);
+        void clickMouse (const nlohmann::json& requires_info);
+        void yield(const nlohmann::json& requires_info);
 
     };
 

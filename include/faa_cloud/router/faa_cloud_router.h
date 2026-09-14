@@ -56,7 +56,10 @@ namespace  faa::cloud::router{
             std::lock_guard lock(mutex);
             nlohmann::json ms_info;
             for (const auto& val : map | std::views::values){
-                ms_info[val.id]={val.id,val.name};
+                ms_info[val.id]={
+                    {"id",  val.id},
+                    {"name",val.name}
+                };
             }
             return ms_info;
         }

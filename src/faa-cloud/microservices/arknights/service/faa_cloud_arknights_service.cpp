@@ -76,6 +76,8 @@ FaaArknightsService& FaaArknightsService::start(info::log::Ilog& log){
 
 }
 
+
+
 void FaaArknightsService::loop(info::log::Ilog& log) {
     if (!this->isInitialized()){
         return;
@@ -90,11 +92,10 @@ void FaaArknightsService::loop(info::log::Ilog& log) {
     inet_pton(AF_INET, ip.c_str(), &target_addr.sin_addr);
 
     while (this->running.load()){
+
          std::vector<char> msg_buf(65535);
          std::string msg_str;
          this->network_->getMessage(msg_buf,msg_str,target_addr);
-         log.info("msg_buf : {}",msg_str);
-
 
          this->thread_pool_->enqueue([this,msg_buf,msg_str,target_addr, &log](){
 
@@ -117,7 +118,7 @@ void FaaArknightsService::loop(info::log::Ilog& log) {
                     }
 
                    auto requires_detail=msg_json["info"].value("requires_detail",nlohmann::json());
-                   log.info("requires_detail : {}",requires_detail.dump());
+                   log.debug("requires_detail : {}",requires_detail.dump());
 
 
                      auto operator_func=this->operator_map.find(requires_detail.value("operation",""));
@@ -125,6 +126,14 @@ void FaaArknightsService::loop(info::log::Ilog& log) {
                           operator_func->second(requires_detail,response_addr);
                      }else{
                           log.error("unknown operation: {}",requires_detail.value("operation",""));
+                          auto ack=net_work::FaaCloudNetworkAck();
+                          ack.unserialize(
+                              "unknown operation",
+                               nlohmann::json(
+                                  {"operation",requires_detail.value("operation","")}
+                              )
+                          );
+                          this->network_->sendMessage(ack.serialize(),response_addr);
                      }
 
 
@@ -133,4 +142,50 @@ void FaaArknightsService::loop(info::log::Ilog& log) {
               }
          });
     }
+}
+
+
+FaaArknightsService& FaaArknightsService::initOcr(info::log::Ilog& log){
+    log.debug("initOcr det:{}",this->config_.value("det_ocr_config",nlohmann::json({})).dump());
+    log.debug("initOcr rec:{}",this->config_.value("rec_ocr_config",nlohmann::json({})).dump());
+
+    if (!this->config_.contains("det_ocr_config")){
+        log.error("det_ocr_config is not found");
+        return *this;
+    }
+    auto det=std::make_unique<
+        fdnn::rt::FaaDnnExecutor<fdnn::fcv::FaaCvDnnForTensorRT,fdnn::fcv::FaaCvCtx>>(
+            std::make_unique<fdnn::fcv::FaaCvDnnForTensorRT>(
+                this->config_["det_ocr_config"]["path"].get<std::string>()
+                )
+        );
+    det->initEngine().initCtx(det_ocr->ctx);
+
+    this->det_ocr->setConfig(this->config_.value("det_ocr_config",nlohmann::json({}))).
+                   setExecutor(std::move(det)).
+                   setProcess (std::make_unique<fdnn::fcv::processer::ocr::FaaOcrDetProc>());
+
+    if (!this->config_.contains("rec_ocr_config")){
+        log.error("rec_ocr_config is not found");
+        return *this;
+    }
+
+    auto rec=std::make_unique<
+       fdnn::rt::FaaDnnExecutor<fdnn::fcv::FaaCvDnnForTensorRT,fdnn::fcv::FaaCvCtx>>(
+           std::make_unique<fdnn::fcv::FaaCvDnnForTensorRT>(
+               this->config_["rec_ocr_config"].value("path","")
+               )
+       );
+
+    rec->initEngine().initCtx(this->rec_ocr->ctx);
+
+    this->rec_ocr->
+        setConfig(this->config_.value("rec_ocr_config",nlohmann::json({}))).
+        setExecutor(std::move(rec)).
+        setProcess (
+            std::make_unique<fdnn::fcv::processer::ocr::FaaOcrRecProc>(
+            this->config_["rec_ocr_config"].value("voc_path","")
+            )
+        );
+    return *this;
 }

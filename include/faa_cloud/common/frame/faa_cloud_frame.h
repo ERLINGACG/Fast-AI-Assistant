@@ -22,6 +22,9 @@ namespace faa::cloud::frame{
 
         auto peek(cv::Mat& frame) {
             std::lock_guard lock(frame_lock);
+            if (frames.empty()){
+                return;
+            }
             frame=frames.back();
         }
 
