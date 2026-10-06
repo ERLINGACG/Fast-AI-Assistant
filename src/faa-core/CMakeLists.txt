@@ -7,6 +7,7 @@ set(FAA-C-SOURCES
        fdnn/fcv/faa_dnn_cv_trt.cpp
        fdnn/fcv/processer/ocr/faa_ocr_det_proc.cpp
        fdnn/fcv/processer/ocr/faa_ocr_res_proc.cpp
+       fdnn/fcv/processer/ob/faa_yolo_proc.cpp
 )
 set(FAA-C-INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/include

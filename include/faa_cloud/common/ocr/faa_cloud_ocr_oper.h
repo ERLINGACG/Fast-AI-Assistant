@@ -23,6 +23,14 @@ namespace faa::cloud::common::ocr{
 
         auto code= fdnn::rt::code::FaaDnnRtCode();
         cv::Mat blob;
+        int KeepX  = config.value("KeepX",1);
+        int KeepY  = config.value("KeepY",1);
+        int KeepW  = config.value("KeepW",img.cols);
+        int KeepH  = config.value("KeepH",img.rows);
+
+        cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC1);
+        cv::rectangle(mask, cv::Rect(KeepX, KeepY, KeepW, KeepH), cv::Scalar(255), cv::FILLED);
+        img.setTo(cv::Scalar(0, 0, 0), ~mask);   // mask 为 0 的位置置黑
 
         int width  = config.value("width" ,det_ocr.config.value("width",640));
         int height = config.value("height",det_ocr.config.value("height",640));
@@ -55,14 +63,23 @@ namespace faa::cloud::common::ocr{
                 types_mapping[det_ocr.exit_type]
             );
 
+        auto start = std::chrono::high_resolution_clock::now();
         det_ocr.executor->
-            forward(det_ocr.ctx).
-            getOutput(
+            forward(det_ocr.ctx);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout<<"forward time: "<<std::chrono::duration<double, std::milli>( end - start ).count()<<" ms"<<std::endl;
+
+        start = std::chrono::high_resolution_clock::now();
+        det_ocr.executor->getOutput(
                         det_ocr.exit_layer,
                         output,
                         det_ocr.ctx,
                         types_mapping[det_ocr.exit_type]
-            ).
+            );
+        end = std::chrono::high_resolution_clock::now();
+        std::cout<<"getOutput time: "<<std::chrono::duration<double, std::milli>( end - start ).count()<<" ms"<<std::endl;
+
+        det_ocr.executor->
             postProcess(
                     *det_ocr.process,
                     static_cast<float*>(output.toHost()),img,
@@ -74,7 +91,7 @@ namespace faa::cloud::common::ocr{
                     },
                     code,
                     ack.det_result
-            );
+        );
 
     }
 
@@ -87,6 +104,7 @@ namespace faa::cloud::common::ocr{
         const int min_width      = rec_ocr.config.value("min_width",160);
         const int max_width      = rec_ocr.config.value("max_width",3200);
         const int height         = rec_ocr.config.value("height",48);
+        auto key_word      = config.value("key_word","");
         auto code= fdnn::rt::code::FaaDnnRtCode();
 
         for (const auto& box : ack.det_result.rects){
@@ -164,7 +182,9 @@ namespace faa::cloud::common::ocr{
                 }
             }
             ack.rec_result.emplace_back(text,box);
-
+            if (!key_word.empty() && key_word==text){
+                break;
+            }
         }
     }
 

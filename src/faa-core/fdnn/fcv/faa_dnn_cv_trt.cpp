@@ -85,15 +85,10 @@ FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::forward(FaaCvCtx& ctx){
 }
 
 FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::getOutput(const std::string& name,FaaCvOutputData& output, FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType){
-    // std::vector<int64_t> shape;
-    // auto  data_len=TensorRTCvCoreFramework::GetOutputShape(name.c_str(),ctx.ctx);
-    // auto* data_prt=TensorRTCvCoreFramework::GetOutputShapes(name.c_str(),ctx.ctx);
-    // shape.assign(data_prt,data_prt+data_len);
-    // for (auto i : shape){
-    //     std::cout<<"Shape "<<"["<<i<<"],";
-    // }
-    // std::cout<<std::endl;
+
+
     TensorRTCvCoreFramework::GetOutput(name.c_str(),ctx.ctx,output.cuda_data,dataType);
+
     return *this;
 }
 

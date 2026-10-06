@@ -336,8 +336,38 @@ int WindowsInput::dragMouse(const DragMouseInfo& drag_info) {
 }
 
 int WindowsInput::rollMouse(const RollMouseInfo& roll_info){
-    this->activateWindow();
 
+    this->activateWindow();
+    int totalDelta = roll_info.delta;
+    int step = roll_info.step;
+
+    if (step <= 0) step = 1;
+    if (totalDelta == 0) return 0;
+
+    const double stepDelta = static_cast<double>(totalDelta) / step;
+    int accumulatedDelta = 0;
+
+    for (int i = 0; i < step; ++i) {
+        int delta = static_cast<int>(std::round(stepDelta));
+
+        // 最后一帧修正累积误差
+        if (i == step - 1) {
+            delta = totalDelta - accumulatedDelta;
+        }
+
+        INPUT wheel = {0};
+        wheel.type = INPUT_MOUSE;
+        wheel.mi.dwFlags = roll_info.horizontal
+                           ? MOUSEEVENTF_HWHEEL
+                           : MOUSEEVENTF_WHEEL;
+        wheel.mi.mouseData = static_cast<DWORD>(delta);
+
+        SendInput(1, &wheel, sizeof(INPUT));
+
+        accumulatedDelta += delta;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(roll_info.step_delay));
+    }
     return 0;
 }
 

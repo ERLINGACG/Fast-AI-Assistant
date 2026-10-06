@@ -40,6 +40,7 @@ endfunction()
 function(build_cloud_router_exec)
     set(FAA-C-Router-SOURCES
             router/faa_cloud_router.cpp
+            router/faa_cloud_router_operation.cpp
             run/faa_cloud_router_run.cpp
     )
     add_definitions(-DNOMINMAX)

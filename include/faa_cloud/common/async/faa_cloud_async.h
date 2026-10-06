@@ -71,6 +71,7 @@ namespace faa::cloud::common::async{
                 }
                 return task;
             }
+            
             return AsyncTask{
                 .id=-1,
                 .status="unknown",

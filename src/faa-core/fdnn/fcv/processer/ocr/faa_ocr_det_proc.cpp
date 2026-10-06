@@ -7,7 +7,7 @@ using faa::fdnn::fcv::processer::ocr::FaaDetPreParam;
 using faa::fdnn::rt::code::FaaDnnRtCode;
 void FaaOcrDetProc::PreProcess(const cv::Mat& img, cv::Mat& blob,const
     FaaDetPreParam& param, FaaDnnRtCode& code) {
-    std::cout<<param.height<<" "<<param.width<<std::endl;
+    // std::cout<<param.height<<" "<<param.width<<std::endl;
     if (img.empty()){
         code=FaaDnnRtCode::Failed;
         return;
@@ -52,7 +52,7 @@ void FaaOcrDetProc::PostProcess(float* output, cv::Mat orgImg,
         orgImg.cols * orgImg.rows / (param.width * param.height)
     );
     std::vector<cv::RotatedRect> textBoxes;
-    // cv::Mat cropped = orgImg.clone();
+
     for (const auto& c : contours) {
         double area = cv::contourArea(c);
         if (area < min_area) continue;
@@ -78,8 +78,7 @@ void FaaOcrDetProc::PostProcess(float* output, cv::Mat orgImg,
         bbox.height = std::min(orgImg.rows - bbox.y, bbox.height + 2 * param.PAD);
         if (bbox.width <= 0 || bbox.height <= 0) continue;
 
-        // cv::rectangle(cropped, bbox, cv::Scalar(0, 0, 255), 2);
-        // cv::imwrite("test.jpg", cropped);
+
         result.rects.push_back(bbox);
     }
     code=FaaDnnRtCode::Success;

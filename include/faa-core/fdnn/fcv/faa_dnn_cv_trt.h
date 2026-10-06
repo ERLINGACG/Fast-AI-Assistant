@@ -22,6 +22,12 @@ namespace faa::fdnn::fcv {
         [[nodiscard]] auto toHost() const{
             return cuda_data.data;
         }
+
+
+        // auto resle
+
+
+
     };
 
 

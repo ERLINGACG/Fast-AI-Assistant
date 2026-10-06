@@ -8,10 +8,12 @@
 
 #include "faa-core/faa_export.h"
 #include "faa_cloud_network_ctx.h"
+#include "faa_cloud_network_load.h"
+
 namespace faa::cloud::net_work{
 
 
-    class FAA_CPP_EXPORT FaaCloudNetwork{
+    class FAA_CPP_EXPORT FaaCloudNetwork {
 
         FaaCloudNetworkCtx ctx;
         info::log::Ilog log;
@@ -25,6 +27,10 @@ namespace faa::cloud::net_work{
             auto& getLog(){
                 return log;
             }
+
+            void sendLoad(FaaCloudNetworkLoad& load, const sockaddr_in& client_addr) const;
+            
+
     };
 }
 #endif //FASTSCREEN_FAA_NETWORK_H

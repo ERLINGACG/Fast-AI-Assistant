@@ -24,7 +24,7 @@ int main(){
             )
     );
     router.
-        initOperatorHandler().
+        initOperatorHandlerV2().
         initThreadPool().
         start(log).
         join();

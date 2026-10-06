@@ -83,18 +83,22 @@ namespace  faa::cloud::router{
 
         std::map<std::string,std::function<bool(nlohmann::json& requires_detail, sockaddr_in& addr)>> operator_map{
         };
+        std::map<std::string,std::function<bool (net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr)>> operator_map_v2{
+        };
 
 
         public:
             explicit FaaCloudRouter(std::unique_ptr<net_work::FaaCloudNetwork> network) : network(std::move(network)){}
             FaaCloudRouter& initThreadPool();
-            FaaCloudRouter& initOperatorHandler();
+            FaaCloudRouter& initOperatorHandlerV2();
             FaaCloudRouter& start(info::log::Ilog& logger);
             FaaCloudRouter& join();
 
-            bool registerMs (nlohmann::json& ms_info, sockaddr_in& addr);
-            bool queryMsInfo(nlohmann::json& ms_info, sockaddr_in& addr);
-            bool routeMsInfo(nlohmann::json& ms_info, sockaddr_in& addr);
+
+            bool responseV2 (net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
+            bool queryMsInfoV2(net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
+            bool routeMsInfoV2(net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
+            bool registerMsV2 (net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
 
 
             void loop(info::log::Ilog& logger);

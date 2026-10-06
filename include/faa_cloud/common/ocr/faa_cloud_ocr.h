@@ -42,7 +42,11 @@ namespace faa::cloud::common::ocr{
         }
 
 
+
     };
+
+
+
 
     template <typename B,typename C,typename P>
     struct FaaCloudOcr{

@@ -10,12 +10,15 @@
 #include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
 #include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
 #include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
+#include "faa-core/fdnn/fcv/processer/ob/faa_yolo_proc.h"
+
 #include "faa-core/thread_pool/faa_thread_pool.h"
 #include "faa-core/wgc_cap/faa_wgc_cap.h"
 #include "faa_cloud/common/async/faa_cloud_async.h"
 #include "faa_cloud/common/frame/faa_cloud_frame.h"
 #include "faa_cloud/common/input/faa_cloud_win32_input.h"
 #include "faa_cloud/common/ocr/faa_cloud_ocr.h"
+#include "faa_cloud/common/yolo/faa_cloud_yolo.h"
 #include "faa_cloud/network/faa_cloud_network.h"
 
 namespace faa::cloud::microservices::arknigths{
@@ -32,6 +35,8 @@ namespace faa::cloud::microservices::arknigths{
 
 
         std::thread get_frames_thread;
+        std::thread loop_thread;
+        std::thread cmd_thread;
         std::string id_str={};
 
         std::unique_ptr<frame::Frames> frame_resources;
@@ -42,6 +47,7 @@ namespace faa::cloud::microservices::arknigths{
         using TensorRTBackendCtx    =fdnn::fcv::FaaCvCtx;
         using TensorRTOcrDetProc    =fdnn::fcv::processer::ocr::FaaOcrDetProc;
         using TensorRTOcrRecProc    =fdnn::fcv::processer::ocr::FaaOcrRecProc;
+        using TensorRTYoloProc      =fdnn::fcv::processer::ob::FaaYoloProc;
 
         std::unique_ptr<
             common::ocr::FaaCloudOcr<
@@ -59,15 +65,31 @@ namespace faa::cloud::microservices::arknigths{
            >
         > rec_ocr;
 
-
-        common::async::AsyncTasks async_tasks;
+        std::unique_ptr<
+            common::yolo::FaaCloudYolo<
+                TensorRTBackend,
+                TensorRTBackendCtx,
+                TensorRTYoloProc
+            >
+        > yolo_ui_det;
 
         std::map<
             std::string,
-            std::function<
-                void(nlohmann::json& requires_info,sockaddr_in& response_addr)
+            std::unique_ptr<
+                common::yolo::FaaCloudYolo<TensorRTBackend,TensorRTBackendCtx,TensorRTYoloProc>
             >
-        > operator_map={};
+        > yolo_map;
+
+
+        common::async::AsyncTasks async_tasks;
+
+
+        std::map<
+           std::string,
+           std::function<
+               void(net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr)
+           >
+        > operator_map_v2={};
 
         public:
            FaaArknightsService(){
@@ -89,6 +111,15 @@ namespace faa::cloud::microservices::arknigths{
                        fdnn::fcv::processer::ocr::FaaOcrRecProc
                     >
                >();
+
+               this->yolo_ui_det =std::make_unique<
+                   common::yolo::FaaCloudYolo<
+                       fdnn::fcv::FaaCvDnnForTensorRT,
+                       fdnn::fcv::FaaCvCtx,
+                       fdnn::fcv::processer::ob::FaaYoloProc
+                    >
+               >();
+
            }
 
            FaaArknightsService(const FaaArknightsService&) = delete;
@@ -96,28 +127,40 @@ namespace faa::cloud::microservices::arknigths{
 
            FaaArknightsService& setConfig(const nlohmann::json& config);
            FaaArknightsService& setNetwork(std::unique_ptr<net_work::FaaCloudNetwork> network);
-           FaaArknightsService& setOperator(info::log::Ilog& log);
+
+           FaaArknightsService& setOperatorV2(info::log::Ilog& log);
            FaaArknightsService& setAsyncOperator(info::log::Ilog& log);
 
            FaaArknightsService& initOcr       (info::log::Ilog& log);
+           FaaArknightsService& initYolo      (info::log::Ilog& log);
+           FaaArknightsService& initYoloList  (info::log::Ilog& log);
+
            FaaArknightsService& initThreadPool(std::unique_ptr<core::thread_pool::FAAThreadPool> thread_pool);
-           FaaArknightsService& start(info::log::Ilog& log);
+           FaaArknightsService& startV2(info::log::Ilog& log);
+           FaaArknightsService& loop(info::log::Ilog& log);
 
 
-           void addWgcOperator  (info::log::Ilog& log);
-           void addSleepOperator(info::log::Ilog& log);
-           void addWin32InputOperator(info::log::Ilog& log);
+           void addWgcOperatorV2(info::log::Ilog& log);
+           void addOcrOperatorV2(info::log::Ilog& log);
+           void addWin32InputOperatorV2(info::log::Ilog& log);
+           void addResponseOperator(info::log::Ilog& log);
+           void addYoloUIOperator(info::log::Ilog& log);
 
-           void addGetAsyncTaskOperator(info::log::Ilog& log);
-           void addOcrAsyncOperator    (info::log::Ilog& log);
+           void addOcrAsyncOperatorV2(info::log::Ilog& log);
+           void addGetTask(info::log::Ilog& log);
 
 
 
-           void ocrOperator        (info::log::Ilog& log,nlohmann::json& requires_info, common::ocr::FaaCloudOcrAck& ack);
+
+
+
+           void ocrOperator        (info::log::Ilog& log,nlohmann::json& requires_info,       common::ocr::FaaCloudOcrAck& ack);
+           void ocrOperator        (info::log::Ilog& log,net_work::FaaCloudNetworkLoad& load, common::ocr::FaaCloudOcrAck& ack);
            void win32InputOperator (info::log::Ilog& log, const nlohmann::json& requires_info);
 
 
-           void loop(info::log::Ilog& log);
+           void loop_v2(info::log::Ilog& log);
+           void loop_cmd(info::log::Ilog& log);
            bool isInitialized() const { return !id_str.empty(); };
 
 

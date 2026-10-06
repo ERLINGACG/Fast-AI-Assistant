@@ -3,6 +3,7 @@
 //
 #include "faa_cloud/common/input/faa_cloud_win32_input.h"
 
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 using faa::cloud::common::input::win32::FaaCloudWin32Input;
@@ -16,6 +17,9 @@ FaaCloudWin32Input::FaaCloudWin32Input() {
     };
     this->operators["rotate_mouse"] =[this](const nlohmann::json& requires_info){
         rotateMouse(requires_info);
+    };
+    this->operators["drag_mouse"] =[this](const nlohmann::json& requires_info){
+        dragMouse(requires_info);
     };
     this->operators["yield"]       =[this](const nlohmann::json& requires_info){
         yield(requires_info);
@@ -66,11 +70,26 @@ void FaaCloudWin32Input::clickMouse(const nlohmann::json& requires_info) {
     std::lock_guard lock(mtx);
     if (!input) return;
     input->clickMouse({
-    requires_info.value("count",0),
-        requires_info.value("duration",500),
+                requires_info.value("count",1),
+            requires_info.value("duration",500),
         requires_info.value("click_name","left_click"),
         }
     );
+}
+
+void FaaCloudWin32Input::dragMouse(const nlohmann::json& requires_info)
+{
+    std::lock_guard lock(mtx);
+    std::cout << "drag_mouse:" << requires_info.dump() << std::endl;
+    if (!input) return;
+
+    input->dragMouse({
+        requires_info.value("click_name","left_click"),
+        requires_info.value("x",0),
+        requires_info.value("y",0),
+        requires_info.value   ("step",10),
+        requires_info.value("step_delay",50),
+    });
 }
 
 void FaaCloudWin32Input::yield(const nlohmann::json& requires_info){

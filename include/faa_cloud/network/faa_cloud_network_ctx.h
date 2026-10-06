@@ -10,8 +10,8 @@
 #include "info/ilog/ilog.h"
 #include "../code/faa_cloud_code.h"
 
-namespace faa::cloud::net_work
-{
+namespace faa::cloud::net_work {
+
     struct FaaCloudNetworkCtx{
         nlohmann::json config_;
 

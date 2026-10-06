@@ -10,7 +10,9 @@ using faa::cloud::microservices::arknigths::FaaArknightsService;
 void FaaArknightsService::ocrOperator(info::log::Ilog& log,nlohmann::json& requires_info, common::ocr::FaaCloudOcrAck& ack){
     cv::Mat frame;
     this->frame_resources->peek(frame);
+
     if (!frame.empty()){
+
         fdnn::fcv::FaaCvOutputData output{};
         faa::cloud::common::ocr::ocrDetOper(
             requires_info,*this->det_ocr,
@@ -26,8 +28,35 @@ void FaaArknightsService::ocrOperator(info::log::Ilog& log,nlohmann::json& requi
     }
 }
 
-void FaaArknightsService::win32InputOperator(info::log::Ilog& log, const nlohmann::json& requires_info){
+void FaaArknightsService::ocrOperator(
+    info::log::Ilog& log,
+    net_work::FaaCloudNetworkLoad& load,
+    common::ocr::FaaCloudOcrAck& ack
 
+    ) {
+
+    cv::Mat frame;
+    this->frame_resources->peek(frame);
+    log.debug("params:threshold:{}",load.body().data.value("threshold",0.0));
+    if (!frame.empty()){
+        fdnn::fcv::FaaCvOutputData output{};
+        faa::cloud::common::ocr::ocrDetOper(
+            load.body().data,*this->det_ocr,
+            frame,output,ack
+        );
+
+        faa::cloud::common::ocr::ocrRecOper(
+            load.body().data,*this->rec_ocr,
+            frame,output,ack
+        );
+        delete[] static_cast<float*>(output.toHost());;
+        ack.detail();
+
+    }
+}
+
+void FaaArknightsService::win32InputOperator(info::log::Ilog& log, const nlohmann::json& requires_info)
+{
     if (!this->win32input->isInit()){
         auto hwnd=core::win_utils::GetWindowHandle(this->config_.value("target","") );
         if (hwnd==nullptr){
@@ -47,11 +76,10 @@ void FaaArknightsService::win32InputOperator(info::log::Ilog& log, const nlohman
     }
 
     for(auto& it:requires_info.value("inputs",nlohmann::json::array())){
-        if (auto type_name=it.value("type","");
-            this->win32input->operators.contains(type_name)
-        ){
-                this->win32input->operators[type_name](it);
+        auto type_name= it.value("type","");
+        if (this->win32input->operators.contains(type_name) ){
+            this->win32input->operators[type_name](it);
         }
-    }
 
+    }
 }

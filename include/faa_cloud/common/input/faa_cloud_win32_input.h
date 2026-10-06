@@ -42,6 +42,7 @@ namespace faa::cloud::common::input::win32{
         void sendInput  (const nlohmann::json& requires_info);
         void rotateMouse(const nlohmann::json& requires_info);
         void clickMouse (const nlohmann::json& requires_info);
+        void dragMouse  (const nlohmann::json& requires_info);     // 拖动鼠标
         void yield(const nlohmann::json& requires_info);
 
     };

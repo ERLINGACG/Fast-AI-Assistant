@@ -10,13 +10,7 @@
 using faa::core::cap::wgc::FAAWindowCapture;
 
  FAAWindowCapture&  FAAWindowCapture::initD3d11(D3DDeviceContext device_context) {
-    // this->log.info("init_d3d11 for window: {}", this->target_window_name);
-    //
-    // this->target_window_handle=win_utils::GetWindowHandle(this->target_window_name);
-    // if (this->target_window_handle==nullptr){
-    //     this->log.error("this->target_window_handle query failed ");
-    //     return *this;
-    // }
+
 
     try {
         HRESULT hr = D3D11CreateDevice(

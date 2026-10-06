@@ -4,37 +4,91 @@
 #include "faa_cloud/common/frame/faa_cloud_wgc_loop.h"
 #include "faa_cloud/microservices/arknights/service/faa_cloud_arknights_service.h"
 #include "faa_cloud/network/faa_cloud_network_ack.h"
+#include "faa_cloud/common/yolo/faa_cloud_yolo_oper.h"
+#include <stdfloat>
 using faa::cloud::microservices::arknigths::FaaArknightsService;
 
 
-FaaArknightsService& FaaArknightsService::setOperator(info::log::Ilog& log){
-    addWgcOperator(log);
-    addSleepOperator(log);
-    addWin32InputOperator(log);
-    return *this;
+
+
+FaaArknightsService& FaaArknightsService::setOperatorV2(info::log::Ilog& log){
+
+    addResponseOperator(log);
+    addWgcOperatorV2(log);
+    addOcrOperatorV2(log);
+    addWin32InputOperatorV2(log);
+    addOcrAsyncOperatorV2(log);
+    addGetTask(log);
+    addYoloUIOperator(log);
+    return  *this;
 }
 
-void FaaArknightsService::addWgcOperator(info::log::Ilog& log) {
+void FaaArknightsService::addResponseOperator(info::log::Ilog& log) {
+    this->operator_map_v2["response"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
+        log.debug("response to {}",load.unserialize().dump());
 
-    this->operator_map["wgc"]=[this,&log](nlohmann::json& requires_info,sockaddr_in& response_addr){
-        using netWorkAck = net_work::FaaCloudNetworkAck;
+
+        this->network_->sendLoad(
+            load,
+            response_addr
+        );
+    };
+}
+
+void FaaArknightsService::addYoloUIOperator(info::log::Ilog& log) {
+    using fdnn::fcv::processer::ob::FaaYoloProc;
+    using fdnn::fcv::processer::ob::FaaYoloResult;
+    using fdnn::fcv::processer::ob::FaaYoloParams;
+
+    this->operator_map_v2["det_ui"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
+        log.debug("yolo_ui to {}",load.unserialize().dump());
+        cv::Mat frame;
+        this->frame_resources->peek(frame);
+
+        FaaYoloResult result;
+        fdnn::fcv::FaaCvOutputData output;
+
+        faa::cloud::common::yolo::yoloOper(
+            load.body().data,
+            *this->yolo_ui_det,
+            frame,output,result
+            );
+
+        if (yolo_ui_det->exit_type=="fp32"){
+            delete[] static_cast<float*>(output.toHost());
+        }
+        else if (yolo_ui_det->exit_type=="fp16"){
+            delete[] static_cast<uint16_t*>(output.toHost());
+        }
+
+        load.setBody(result.serialize());
+        this->network_->sendLoad(
+            load,
+            response_addr
+        );
+    };
+}
+
+
+void FaaArknightsService::addWgcOperatorV2(info::log::Ilog& log) {
+
+
+    this->operator_map_v2["wgc"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
+
         if (this->get_frames_running.load()){
-            this->network_->sendMessage(
-                netWorkAck().
-                unserialize("success",
-                    nlohmann::json(
-                        {
-                               {"wgc","running"}
-                            }
-                )
-                ).serialize(),
+            load.clearBody();
+            load.setBody({
+                {"wgc","running"}
+            });
+            this->network_->sendLoad(
+                load,
                 response_addr
             );
             return;
         }
-        this->get_frames_running.store(false);
-        this->get_frames_thread=std::thread([this,&log,response_addr](){
 
+        this->get_frames_running.store(false);
+        this->get_frames_thread=std::thread([this,&log,response_addr,load = std::move(load)]() mutable {
             const auto d3d_ctx = std::make_unique<core::cap::wgc::D3DDeviceContext>();
             const auto wgc_rt  = std::make_unique<core::cap::wgc::WGCRunTimeContext>();
             const auto window_capture =
@@ -47,29 +101,30 @@ void FaaArknightsService::addWgcOperator(info::log::Ilog& log) {
                   initD3d11(*d3d_ctx).
                   initWgcRtCtx(*wgc_rt).startSession();
 
-           netWorkAck ack;
+
            if (!window_capture->is_init()){
 
                log.error("wgc init failed");
-               this->network_->sendMessage(
-                   ack.unserialize("success",
-                       nlohmann::json(
-                           {
-                                 {"wgc","failed"}
-                               }
-                            )
-                            ).serialize(),
-                    response_addr
-                   );
-                  return;
+               load.clearBody();
+               load.setBody({
+                   {"wgc","failed"}
+               });
+               this->network_->sendLoad(
+                   load,
+                   response_addr
+               );
+               return;
             }
             this->get_frames_running.store(true);
-            ack.unserialize("success",nlohmann::json({
-                      {"wgc","success"}
-                  })
-             );
+            load.clearBody();
+            load.setBody({
+                {"wgc","success"}
+            });
+            this->network_->sendLoad(
+                load,
+                response_addr
+            );
 
-            this->network_->sendMessage(ack.serialize(),response_addr);
             frame::wgc_loop_v2(
                 this->get_frames_running,
                 *window_capture,
@@ -82,32 +137,44 @@ void FaaArknightsService::addWgcOperator(info::log::Ilog& log) {
     };
 }
 
-void FaaArknightsService::addSleepOperator(info::log::Ilog& log){
+void FaaArknightsService::addOcrOperatorV2(info::log::Ilog& log) {
+    using load = net_work::FaaCloudNetworkLoad;
+    this->operator_map_v2["ocr"]=[this,&log](load& load,sockaddr_in& response_addr)
+    {
+        common::ocr::FaaCloudOcrAck ack;
+        auto start = std::chrono::high_resolution_clock::now();
+        this->ocrOperator(log,load,ack);
 
-    this->operator_map["sleep"]=[this,&log](
-            const nlohmann::json& requires_info, const sockaddr_in& response_addr
-    ){
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> forward_time = end - start;
+        log.info("ocr time: {} ms",forward_time.count());
+        if (!ack.data.empty()){
+            load.setBody(ack.data);
+        }else{
+            load.setBody({
+                {"result","img is empty"}
+            });
+        }
 
-        int32_t sleep=requires_info.value("sleep",0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
-
-        net_work::FaaCloudNetworkAck ack;
-        ack.unserialize("success",nlohmann::json({}));
-        this->network_->sendMessage(ack.serialize(),response_addr);
+        this->network_->sendLoad(load,response_addr);
 
     };
 }
 
-void FaaArknightsService::addWin32InputOperator(info::log::Ilog& log){
-    this->operator_map["win32_input"]=[this,&log](
-            const nlohmann::json& requires_info, const sockaddr_in& response_addr
-    ){
 
-        win32InputOperator(log,requires_info);
-        net_work::FaaCloudNetworkAck ack;
-        ack.unserialize("success",nlohmann::json({}));
-        this->network_->sendMessage(ack.serialize(),response_addr);
+
+
+
+void FaaArknightsService::addWin32InputOperatorV2(info::log::Ilog& log) {
+    this->operator_map_v2["win32_input"]=[this,&log](net_work::FaaCloudNetworkLoad& load, const sockaddr_in& response_addr){
+        win32InputOperator(log,load.body().data);
+        load.clearBody();
+        load.setBody({
+            {"win32_input","success"}
+        });
+        this->network_->sendLoad(load,response_addr);
     };
 }
+
 
 

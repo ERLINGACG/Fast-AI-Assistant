@@ -10,10 +10,10 @@
 #include <string>
 
 namespace faa::fdnn::rt::data_utils{
-    inline std::map<std::string, std::function<auto(void*&, std::any&)>> map = {
-        {"fp32", [](void*& src, std::any& dst)  { dst = static_cast<float*>(src); }},
-        {"int32", [](void*& src, std::any& dst) { dst = static_cast<int32_t*>(src); }},
-        {"int8",  [](void*& src, std::any& dst) { dst = static_cast<int8_t*>(src); }}
-    };
+    // inline std::map<std::string, std::function<auto(void*&, std::any&)>> map = {
+    //     {"fp32", [](void*& src, std::any& dst)  { dst = static_cast<float*>(src); }},
+    //     {"int32", [](void*& src, std::any& dst) { dst = static_cast<int32_t*>(src); }},
+    //     {"int8",  [](void*& src, std::any& dst) { dst = static_cast<int8_t*>(src); }}
+    // };
 }
 #endif //FASTSCREEN_FAA_DNN_DATA_UTILS_H

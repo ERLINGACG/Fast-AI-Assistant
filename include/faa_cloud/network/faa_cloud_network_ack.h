@@ -18,6 +18,8 @@ namespace faa::cloud::net_work{
             data["info"] = info;
             return *this;
         }
+
+        
     };
 }
 #endif //FASTSCREEN_FAA_CLOUD_ACK_H
