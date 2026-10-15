@@ -65,6 +65,10 @@ FaaArknightsService& FaaArknightsService::startV2(info::log::Ilog& log) {
     return *this;
 }
 
+FaaArknightsService& FaaArknightsService::unLine(info::log::Ilog& log) {
+    return *this;
+}
+
 FaaArknightsService& FaaArknightsService::loop(info::log::Ilog& log)
 {
     this->loop_thread=std::thread([this,&log]() {
@@ -138,7 +142,6 @@ void FaaArknightsService::loop_v2(info::log::Ilog& log)
             }
         );
 
-        // std::vector<char> msg_buf(65535);
     }
 }
 
@@ -165,6 +168,7 @@ FaaArknightsService& FaaArknightsService::initOcr(info::log::Ilog& log) {
         log.error("det_ocr_config is not found");
         return *this;
     }
+
     auto det=std::make_unique<
         fdnn::rt::FaaDnnExecutor<fdnn::fcv::FaaCvDnnForTensorRT,fdnn::fcv::FaaCvCtx>>(
             std::make_unique<fdnn::fcv::FaaCvDnnForTensorRT>(
@@ -202,32 +206,7 @@ FaaArknightsService& FaaArknightsService::initOcr(info::log::Ilog& log) {
     return *this;
 }
 
-FaaArknightsService& FaaArknightsService::initYolo(info::log::Ilog& log) {
 
-    log.debug("initYolo det:{}",this->config_.value("yolo_ui_det_config",nlohmann::json({})).dump());
-    auto yolo_ui_det=std::make_unique<
-        fdnn::rt::FaaDnnExecutor<
-            TensorRTBackend,TensorRTBackendCtx>
-        >(
-            std::make_unique<TensorRTBackend>(
-                this->config_["yolo_ui_det_config"]["path"].get<std::string>()
-            )
-        );
-
-    auto yolo_proc=std::make_unique<fdnn::fcv::processer::ob::FaaYoloProc>(
-        this->config_["yolo_ui_det_config"]
-    );
-
-    yolo_ui_det->
-        initEngine().
-        initCtx(this->yolo_ui_det->ctx);
-
-    this->yolo_ui_det->
-        setConfig(this->config_.value("yolo_ui_det_config",nlohmann::json({}))).
-        setExecutor(std::move(yolo_ui_det)).
-        setProcess(std::move(yolo_proc));
-    return *this;
-}
 
 FaaArknightsService& FaaArknightsService::initYoloList(info::log::Ilog& log) {
     auto array = this->config_.
@@ -238,7 +217,9 @@ FaaArknightsService& FaaArknightsService::initYoloList(info::log::Ilog& log) {
 
     int ids = 0;
     for (auto& item:array){
+
         log.debug("{}",item.dump(2));
+
         if (!item.contains("path")){
             log.warn("yolo_list_config item path is not found to {}",item.value("name",""));
             continue;
@@ -259,14 +240,23 @@ FaaArknightsService& FaaArknightsService::initYoloList(info::log::Ilog& log) {
             )
         );
         //
-        yolo_model->initEngine().initCtx(trt_executor->ctx);
-        // trt_executor->setConfig(item);
+        yolo_model->
+            initEngine().
+            initCtx(trt_executor->ctx);
+
+        auto yolo_proc=std::make_unique<fdnn::fcv::processer::ob::FaaYoloProc>(item);
+
         trt_executor->
             setExecutor(std::move(yolo_model)
-            );
+            ).
+            setProcess(std::move(yolo_proc)).
+            setConfig(item);
+
         //
         this->yolo_map[item.value("name","yolo_"+std::to_string(ids))]=
             std::move(trt_executor);
+
+        log.debug("yolo_list_config item {} init done",item.value("name",""));
         ids++;
     }
 

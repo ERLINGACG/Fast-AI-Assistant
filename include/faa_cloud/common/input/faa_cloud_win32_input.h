@@ -8,8 +8,9 @@
 #include <memory>
 #include <mutex>
 #include <nlohmann/json.hpp>
-#include "faa-core/faa_export.h"
-#include "faa-core/input/windows_input.h"
+#include <utility>
+#include "faa_core/faa_export.h"
+#include "faa_core/input/windows_input.h"
 
 namespace faa::cloud::common::input::win32{
 
@@ -21,16 +22,29 @@ namespace faa::cloud::common::input::win32{
         using input_type= std::unique_ptr<faa::input::windows::WindowsInput>;
         using operator_map = std::map<std::string,std::function<void(const nlohmann::json& requires_info)>>;
 
-
         operator_map operators;
         input_type input;
         std::mutex mtx;
+
+        std::string target;
 
 
         FaaCloudWin32Input();
 
         auto set(input_type input){
             this->input=std::move(input);
+        }
+
+        auto reset(input_type input,std::string target) {
+            std::lock_guard lock(mtx);
+            this->input.reset();
+            this->input =std::move(input);
+            this->target=std::move(target);
+        }
+
+
+        [[nodiscard]] auto getTarget() const {
+            return target;
         }
 
         [[nodiscard]] auto isInit() const{

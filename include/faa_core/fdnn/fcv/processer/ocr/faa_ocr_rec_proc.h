@@ -6,8 +6,8 @@
 #define FASTSCREEN_FAA_OCR_REC_PROC_H
 #include <fstream>
 
-#include "faa-core/faa_export.h"
-#include "faa-core/fdnn/runtime/faa_dnn_rt_code.h"
+#include "faa_core/faa_export.h"
+#include "faa_core/fdnn/runtime/faa_dnn_rt_code.h"
 namespace faa::fdnn::fcv::processer::ocr {
 
     struct FaaResParam{

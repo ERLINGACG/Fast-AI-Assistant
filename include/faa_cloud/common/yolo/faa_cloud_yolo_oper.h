@@ -8,22 +8,30 @@
 #include <opencv2/core/mat.hpp>
 
 #include "faa_cloud_yolo.h"
-#include "faa-core/fdnn/data/faa_dnn_data_type.h"
-#include "faa-core/fdnn/fcv/processer/ob/faa_yolo_proc.h"
+#include "faa_core/fdnn/data/faa_dnn_data_type.h"
+#include "faa_core/fdnn/fcv/processer/ob/faa_yolo_proc.h"
 
 namespace  faa::cloud::common::yolo {
 
     template<typename B,typename C,typename P>
     void yoloOper(nlohmann::json& config,
                       FaaCloudYolo<B,C,P>& yolo,cv::Mat& img,  fdnn::fcv::FaaCvOutputData& output,
-                      fdnn::fcv::processer::ob::FaaYoloResult& result)
+                      fdnn::fcv::processer::ob::FaaYoloResult& result,info::log::Ilog* ilog = nullptr)
     {
+        if (ilog) ilog->debug("yolo oper");
          std::lock_guard<std::mutex> lock(yolo.lock);
          if (img.empty()) {
             return;
          }
          cv::Mat blob;
-         auto params = fdnn::fcv::processer::ob::FaaYoloParams{};
+         auto params = fdnn::fcv::processer::ob::FaaYoloParams{
+            .input_width  = config.value("input_width",640),
+            .input_height = config.value("input_height",640),
+             .isDraw   = config.value("isDraw",true),
+             .conf     = static_cast<float>(config.value("conf",0.5)),
+             .iou      = static_cast<float>(config.value("iou",0.4)) ,
+             .maxScore = static_cast<float>(config.value("maxScore",0.1)),
+         };
 
 
          yolo.executor->

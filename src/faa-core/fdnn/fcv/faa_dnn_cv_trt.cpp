@@ -1,11 +1,13 @@
 //
 // Created by HP on 2026/7/9.
 //
-#include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
+#include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
 
 #include <iostream>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/dnn/dnn.hpp>
+
+#include "faa_core/fdnn/data/faa_dnn_data_type.h"
 
 
 using faa::fdnn::fcv::FaaCvDnnForTensorRT;
@@ -90,6 +92,26 @@ FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::getOutput(const std::string& name,FaaC
     TensorRTCvCoreFramework::GetOutput(name.c_str(),ctx.ctx,output.cuda_data,dataType);
 
     return *this;
+}
+
+FaaCvDnnForTensorRT& FaaCvDnnForTensorRT::getOutput(
+    const std::string& name, FaaCvOutputData& output, FaaCvCtx& ctx,
+    const std::string& dataType,
+    info::log::Ilog* ilog
+    )
+{
+    using data::type::fdnn_types_mapping;
+    const auto enum_value =fdnn_types_mapping.find(dataType);
+
+    if (ilog) ilog->debug("get output: {}, data type: {}",name,dataType);
+
+    if(enum_value == fdnn_types_mapping.end()) {
+        if (ilog) {
+            ilog->error("unknown data type: {}",dataType);
+        }
+        return *this;
+    }
+    return this->getOutput(name,output,ctx,enum_value->second);
 }
 
 std::vector<int64_t> FaaCvDnnForTensorRT::getOutputShapes(const std::string& name, FaaCvCtx& ctx)

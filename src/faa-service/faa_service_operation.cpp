@@ -7,7 +7,7 @@
 #include <mutex>
 #include <opencv2/core/mat.hpp>
 
-#include "faa-core/win_utils/faa_win_utils.h"
+#include "faa_core/win_utils/faa_win_utils.h"
 #include "../../include/faa_service/runtime/faa_service_runtime.h"
 #include "../../include/faa_service/runtime/faa_servuce_runtime_init.h"
 

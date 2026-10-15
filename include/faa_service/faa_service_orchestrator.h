@@ -12,7 +12,7 @@
 #include <opencv2/core/mat.hpp>
 
 #include "faa_service_operation.h"
-#include "faa-core/input/windows_input.h"
+#include "faa_core/input/windows_input.h"
 #include "runtime/faa_servuce_runtime_init.h"
 
 namespace faa::service::orchestrator{

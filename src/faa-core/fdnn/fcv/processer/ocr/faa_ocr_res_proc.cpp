@@ -3,8 +3,8 @@
 //
 #include <opencv2/opencv.hpp>
 
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
-#include "faa-core/fdnn/runtime/faa_dnn_rt_code.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
+#include "faa_core/fdnn/runtime/faa_dnn_rt_code.h"
 
 using faa::fdnn::fcv::processer::ocr::FaaOcrRecProc;
 
@@ -26,7 +26,6 @@ void FaaOcrRecProc::PreProcess(cv::Mat& img, cv::Mat& blob, FaaResParam param, r
     cv::Mat float_img;
     img.convertTo(float_img, CV_32F, 1.0 / 255.0); // [0,1]
 
-    // PaddleOCR 识别模型常用归一化：mean=0.5, std=0.5（所有通道相同）
     cv::Scalar mean(0.5f, 0.5f, 0.5f);
     cv::Scalar std(0.5f, 0.5f, 0.5f);
     cv::Mat normalized;

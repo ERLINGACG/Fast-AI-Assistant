@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-#include "faa-core/wgc_cap/faa_wgc_cap.h"
+#include "faa_core/wgc_cap/faa_wgc_cap.h"
 #include "info/ilog/ilog.h"
 #include <opencv2/opencv.hpp>
 using std::string;

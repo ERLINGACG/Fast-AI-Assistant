@@ -7,7 +7,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <string>
 
-#include "faa-core/faa_export.h"
+#include "faa_core/faa_export.h"
 // #include "faa_service/faa_net_work.h"
 #include <windows.h>   // 确保先包含 windows.h
 

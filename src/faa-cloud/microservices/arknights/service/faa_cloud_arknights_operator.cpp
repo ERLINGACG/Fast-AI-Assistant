@@ -19,15 +19,19 @@ FaaArknightsService& FaaArknightsService::setOperatorV2(info::log::Ilog& log){
     addWin32InputOperatorV2(log);
     addOcrAsyncOperatorV2(log);
     addGetTask(log);
-    addYoloUIOperator(log);
+    addQueryYoloMap(log);
+    // addYoloUIOperator(log);
+    addYoloOperator(log);
+
     return  *this;
 }
 
 void FaaArknightsService::addResponseOperator(info::log::Ilog& log) {
-    this->operator_map_v2["response"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
+    this->operator_map_v2["response"]=[this,&log](
+
+        net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
         log.debug("response to {}",load.unserialize().dump());
-
-
+        load.setBody({{"response","im find"}});
         this->network_->sendLoad(
             load,
             response_addr
@@ -35,13 +39,27 @@ void FaaArknightsService::addResponseOperator(info::log::Ilog& log) {
     };
 }
 
-void FaaArknightsService::addYoloUIOperator(info::log::Ilog& log) {
+void FaaArknightsService::addYoloOperator(info::log::Ilog& log) {
+
     using fdnn::fcv::processer::ob::FaaYoloProc;
     using fdnn::fcv::processer::ob::FaaYoloResult;
     using fdnn::fcv::processer::ob::FaaYoloParams;
 
-    this->operator_map_v2["det_ui"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
-        log.debug("yolo_ui to {}",load.unserialize().dump());
+    this->operator_map_v2["yolo_det"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr) {
+
+        log.debug("yolo_det to {}",load.unserialize().dump());
+
+        auto model = this->yolo_map.find(load.body().data.value("model",""));
+
+        if (model==this->yolo_map.end() || !model->second){
+            log.error("yolo_det model not found: {}",load.body().data.value("model",""));
+            load.setBody({{"error","yolo_det model not found"}});
+            this->network_->sendLoad(
+                load,
+                response_addr
+            );
+            return;
+        }
         cv::Mat frame;
         this->frame_resources->peek(frame);
 
@@ -50,14 +68,14 @@ void FaaArknightsService::addYoloUIOperator(info::log::Ilog& log) {
 
         faa::cloud::common::yolo::yoloOper(
             load.body().data,
-            *this->yolo_ui_det,
+            *model->second,
             frame,output,result
             );
 
-        if (yolo_ui_det->exit_type=="fp32"){
+        if (model->second->exit_type=="fp32"){
             delete[] static_cast<float*>(output.toHost());
         }
-        else if (yolo_ui_det->exit_type=="fp16"){
+        else if (model->second->exit_type=="fp16"){
             delete[] static_cast<uint16_t*>(output.toHost());
         }
 
@@ -66,9 +84,26 @@ void FaaArknightsService::addYoloUIOperator(info::log::Ilog& log) {
             load,
             response_addr
         );
+
+
     };
+
 }
 
+void FaaArknightsService::addQueryYoloMap(info::log::Ilog& log) {
+    this->operator_map_v2["query_yolo_map"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
+        log.debug("query_yolo_map to {}",load.unserialize().dump());
+        nlohmann::json result = nlohmann::json::array();
+        for (const auto& key : this->yolo_map | std::views::keys){
+            result.push_back(key);
+        }
+        load.setBody(result);
+        this->network_->sendLoad(
+            load,
+            response_addr
+        );
+    };
+}
 
 void FaaArknightsService::addWgcOperatorV2(info::log::Ilog& log) {
 
@@ -160,10 +195,6 @@ void FaaArknightsService::addOcrOperatorV2(info::log::Ilog& log) {
 
     };
 }
-
-
-
-
 
 void FaaArknightsService::addWin32InputOperatorV2(info::log::Ilog& log) {
     this->operator_map_v2["win32_input"]=[this,&log](net_work::FaaCloudNetworkLoad& load, const sockaddr_in& response_addr){

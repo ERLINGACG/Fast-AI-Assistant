@@ -5,8 +5,8 @@
 #include <ws2tcpip.h>
 #include <opencv2/highgui.hpp>
 
-#include "faa-core/faa_data.h"
-#include "faa-core/win_utils/faa_win_utils.h"
+#include "faa_core/faa_data.h"
+#include "faa_core/win_utils/faa_win_utils.h"
 #include "faa-utlis/fs_json_utils.h"
 #include "faa_service/faa_service_operation.h"
 #include "faa_service/faa_service_task.h"

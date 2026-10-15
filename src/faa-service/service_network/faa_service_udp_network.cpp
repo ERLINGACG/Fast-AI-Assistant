@@ -1,6 +1,6 @@
 #include <thread>
 
-#include "faa-core/thread_pool/faa_thread_pool.h"
+#include "faa_core/thread_pool/faa_thread_pool.h"
 #include "faa_service/net_work/faa_service_network.h"
 
 using faa::service::net_work::FaaServiceUDPNetwork;

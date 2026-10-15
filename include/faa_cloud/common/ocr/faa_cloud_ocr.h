@@ -5,9 +5,9 @@
 #ifndef FASTSCREEN_FAA_CLOUD_OCR_H
 #define FASTSCREEN_FAA_CLOUD_OCR_H
 
-#include "faa-core/faa_export.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
-#include "faa-core/fdnn/runtime/faa_dnn_executor.h"
+#include "faa_core/faa_export.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/runtime/faa_dnn_executor.h"
 
 namespace faa::cloud::common::ocr{
 

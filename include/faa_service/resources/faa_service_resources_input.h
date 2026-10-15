@@ -7,8 +7,8 @@
 #include <memory>
 #include <mutex>
 
-#include "faa-core/input/windows_input.h"
-#include "faa-core/win_utils/faa_win_utils.h"
+#include "faa_core/input/windows_input.h"
+#include "faa_core/win_utils/faa_win_utils.h"
 
 namespace faa::service::resources::input{
 

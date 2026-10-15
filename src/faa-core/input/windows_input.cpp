@@ -1,7 +1,7 @@
 //
 // Created by HP on 2026/7/6.
 //
-#include "faa-core/input/windows_input.h"
+#include "faa_core/input/windows_input.h"
 
 #include <iostream>
 #include <ostream>
@@ -11,7 +11,7 @@
 #include <thread>
 #include <interception/input.h>
 
-#include "faa-core/input/windows_input_code.h"
+#include "faa_core/input/windows_input_code.h"
 using faa::input::windows::WindowsInput;
 
 int WindowsInput::activity()

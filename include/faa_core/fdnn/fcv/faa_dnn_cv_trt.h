@@ -7,7 +7,9 @@
 #include <string>
 #include <gdlz/trt/cv/core/trt_cv_core.h>
 #include <opencv2/core/mat.hpp>
-#include "faa-core/faa_export.h"
+#include "faa_core/faa_export.h"
+#include "info/ilog/ilog.h"
+
 namespace faa::fdnn::fcv {
     struct FaaCvCtx{
         gdlz::trt::icv::core::TensorRTCvCtx ctx;
@@ -22,12 +24,6 @@ namespace faa::fdnn::fcv {
         [[nodiscard]] auto toHost() const{
             return cuda_data.data;
         }
-
-
-        // auto resle
-
-
-
     };
 
 
@@ -49,6 +45,7 @@ namespace faa::fdnn::fcv {
             FaaCvDnnForTensorRT& clear    (FaaCvCtx& ctx);
             FaaCvDnnForTensorRT& forward  (FaaCvCtx& ctx);
             FaaCvDnnForTensorRT& getOutput(const std::string& name,FaaCvOutputData& output,FaaCvCtx& ctx,gdlz::trt::core::cuda::DataType dataType);
+            FaaCvDnnForTensorRT& getOutput(const std::string& name,FaaCvOutputData& output,FaaCvCtx& ctx,const std::string& dataType,info::log::Ilog* ilog = nullptr);
 
             std::vector<int64_t> getOutputShapes(const std::string& name,FaaCvCtx& ctx);
 

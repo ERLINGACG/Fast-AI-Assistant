@@ -8,7 +8,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <nlohmann/json.hpp>
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
 
 namespace faa::service{
     struct FaaSerOcrResult{

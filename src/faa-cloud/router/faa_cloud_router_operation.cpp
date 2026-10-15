@@ -37,16 +37,34 @@ bool FaaCloudRouter::routeMsInfoV2(net_work::FaaCloudNetworkLoad& load, sockaddr
 bool FaaCloudRouter::registerMsV2(net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr){
 
     std::cout<<load.unserialize().dump()<<std::endl;
-    auto name = load.body().data.value("name","");
+    auto name = load.body().data.value("name","service");
+    const std::function<bool(sockaddr_in&, sockaddr_in&)> equal_addr = [](const sockaddr_in& a, const sockaddr_in& b){
 
-    this->register_mapper.registerMs(this->id,name+"_"+std::to_string(this->id),addr);
+        return a.sin_addr.s_addr == b.sin_addr.s_addr && a.sin_port == b.sin_port;
+    };
+
+
+    auto define = name+"_"+std::to_string(this->id);
+    auto isService = false;
+    for (auto& val : register_mapper.map | std::views::values) {
+        if (equal_addr(val.addr,addr)) {
+
+            define = val.name;
+            isService = true;
+        }
+
+    }
+    this->register_mapper.registerMs(this->id,define,addr);
     load.clearBody();
     load.setBody(nlohmann::json({
-        {"define",name+"_"+std::to_string(this->id)}
+        {"define",define}
     }));
 
     this->network->sendLoad(load,addr);
-    ++this->id;
+    if (!isService){
+        ++this->id;
+    }
+
     return true;
 }
 
@@ -60,9 +78,7 @@ bool FaaCloudRouter::responseV2(net_work::FaaCloudNetworkLoad& load, sockaddr_in
         )
     );
     std::cout<<load.head_.slice_len<<std::endl;
-    // load.addSlice(nlohmann::json({
-    //     {"hello","world"}}
-    // ));
+
     std::cout<<load.unserialize().dump()<<std::endl;
     this->network->sendLoad(load,addr);
     return true;

@@ -8,7 +8,7 @@
 #include <string>
 
 #include "faa_service/service_event/faa_service_event_task.h"
-#include "faa-core/wgc_cap/faa_wgc_cap.h"
+#include "faa_core/wgc_cap/faa_wgc_cap.h"
 namespace faa::service::resources{
 
     struct WgcRegisterInfo{

@@ -1,8 +1,8 @@
 //
 // Created by HP on 2026/6/30.
 //
-#include "faa-core/wgc_cap/faa_wgc_cap.h"
-#include "faa-core/win_utils/faa_win_utils.h"
+#include "faa_core/wgc_cap/faa_wgc_cap.h"
+#include "faa_core/win_utils/faa_win_utils.h"
 #include <windows.graphics.directx.direct3d11.interop.h>
 #include <Windows.Graphics.Capture.Interop.h>
 

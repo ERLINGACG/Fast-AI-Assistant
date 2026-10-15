@@ -1,7 +1,7 @@
 //
 // Created by HP on 2026/10/2.
 //
-#include "faa-core/fdnn/fcv/processer/ob/faa_yolo_proc.h"
+#include "faa_core/fdnn/fcv/processer/ob/faa_yolo_proc.h"
 
 #include <iostream>
 #include <opencv2/dnn.hpp>
@@ -34,10 +34,14 @@ void FaaYoloProc::PreProcess(const cv::Mat& img, cv::Mat& blob,const FaaYoloPara
 void FaaYoloProc::PostProcess(const float* output, cv::Mat& orgImg,
                               FaaYoloParams& params, FaaYoloResult& result) {
 
-    std::cout<<"yolo post process version 1"<<std::endl;
+    // std::cout<<"yolo post process version 1"<<std::endl;
 
     const int numClasses = static_cast<int>(class_labs.size());
-    if (numClasses == 0 || numAnchors <= 0 || !output) return;
+    if (numClasses == 0 || numAnchors <= 0 || !output)
+    {
+        std::cout<<"numClasses is 0 or numAnchors is 0 or output is null"<<std::endl;
+        return;
+    }
 
     const int totalChannels = 4 + numClasses;   // = 25
 
@@ -83,6 +87,7 @@ void FaaYoloProc::PostProcess(const float* output, cv::Mat& orgImg,
     }
 
     if (rects.empty()){
+        std::cout<<"rects is empty"<<std::endl;
         return;
     }
     std::map<int, std::vector<int>> clsToIdx;   // class_id -> rects 中的下标
@@ -132,7 +137,11 @@ void FaaYoloProc::PostProcess(const float* output, cv::Mat& orgImg,
         }
     }
 
+    auto start = std::chrono::high_resolution_clock::now();
     if (params.isDraw) {
+
         cv::imwrite("output.jpg", orgImg);   // 移到循环外，只写一次
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout<<"imwrite time: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()<<" ms"<<std::endl;
     }
 }

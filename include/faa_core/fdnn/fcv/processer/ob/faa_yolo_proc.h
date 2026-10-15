@@ -4,10 +4,11 @@
 
 #ifndef FASTSCREEN_FAA_YOLO_PROC_H
 #define FASTSCREEN_FAA_YOLO_PROC_H
+#include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
 #include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
 
-#include "faa-core/faa_export.h"
+#include "faa_core/faa_export.h"
 
 namespace faa::fdnn::fcv::processer::ob {
 
@@ -70,7 +71,7 @@ namespace faa::fdnn::fcv::processer::ob {
         public:
             FaaYoloProc(const nlohmann::json& config);
             void PreProcess  (const cv::Mat& img,cv::Mat& blob,const FaaYoloParams& params);
-            void PostProcess (const float* output, cv::Mat& orgImg,          FaaYoloParams& params, FaaYoloResult& result);
+            void PostProcess (const float* output, cv::Mat& orgImg,  FaaYoloParams& params, FaaYoloResult& result);
     };
 }
 #endif //FASTSCREEN_FAA_YOLO_PROC_H

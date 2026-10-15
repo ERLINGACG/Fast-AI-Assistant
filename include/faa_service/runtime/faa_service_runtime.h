@@ -6,11 +6,11 @@
 #define FASTSCREEN_FAA_SERVICE_RUNTIME_H
 #undef ERROR
 #include "../faa_result.h"
-#include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
-#include "faa-core/fdnn/runtime/faa_dnn_executor.h"
-#include "faa-core/wgc_cap/faa_wgc_cap.h"
+#include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
+#include "faa_core/fdnn/runtime/faa_dnn_executor.h"
+#include "faa_core/wgc_cap/faa_wgc_cap.h"
 
 namespace faa::service::rt{
      using core::cap::wgc::FAAWindowCapture;

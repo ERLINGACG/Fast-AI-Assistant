@@ -7,13 +7,13 @@
 #include <nlohmann/json.hpp>
 
 #include "faa_cloud_arknights_async.h"
-#include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
-#include "faa-core/fdnn/fcv/processer/ob/faa_yolo_proc.h"
+#include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
+#include "faa_core/fdnn/fcv/processer/ob/faa_yolo_proc.h"
 
-#include "faa-core/thread_pool/faa_thread_pool.h"
-#include "faa-core/wgc_cap/faa_wgc_cap.h"
+#include "faa_core/thread_pool/faa_thread_pool.h"
+#include "faa_core/wgc_cap/faa_wgc_cap.h"
 #include "faa_cloud/common/async/faa_cloud_async.h"
 #include "faa_cloud/common/frame/faa_cloud_frame.h"
 #include "faa_cloud/common/input/faa_cloud_win32_input.h"
@@ -24,7 +24,7 @@
 namespace faa::cloud::microservices::arknigths{
 
 
-    class FaaArknightsService{
+    class FaaArknightsService {
 
         nlohmann::json config_;
         std::atomic<bool> running=true;
@@ -65,13 +65,6 @@ namespace faa::cloud::microservices::arknigths{
            >
         > rec_ocr;
 
-        std::unique_ptr<
-            common::yolo::FaaCloudYolo<
-                TensorRTBackend,
-                TensorRTBackendCtx,
-                TensorRTYoloProc
-            >
-        > yolo_ui_det;
 
         std::map<
             std::string,
@@ -92,7 +85,7 @@ namespace faa::cloud::microservices::arknigths{
         > operator_map_v2={};
 
         public:
-           FaaArknightsService(){
+           FaaArknightsService() {
                this->frame_resources=std::make_unique<frame::Frames>();
                this->win32input     =std::make_unique<common::input::win32::FaaCloudWin32Input>();
 
@@ -112,13 +105,7 @@ namespace faa::cloud::microservices::arknigths{
                     >
                >();
 
-               this->yolo_ui_det =std::make_unique<
-                   common::yolo::FaaCloudYolo<
-                       fdnn::fcv::FaaCvDnnForTensorRT,
-                       fdnn::fcv::FaaCvCtx,
-                       fdnn::fcv::processer::ob::FaaYoloProc
-                    >
-               >();
+
 
            }
 
@@ -132,20 +119,22 @@ namespace faa::cloud::microservices::arknigths{
            FaaArknightsService& setAsyncOperator(info::log::Ilog& log);
 
            FaaArknightsService& initOcr       (info::log::Ilog& log);
-           FaaArknightsService& initYolo      (info::log::Ilog& log);
            FaaArknightsService& initYoloList  (info::log::Ilog& log);
 
            FaaArknightsService& initThreadPool(std::unique_ptr<core::thread_pool::FAAThreadPool> thread_pool);
            FaaArknightsService& startV2(info::log::Ilog& log);
+           FaaArknightsService& unLine(info::log::Ilog& log);
            FaaArknightsService& loop(info::log::Ilog& log);
+
 
 
            void addWgcOperatorV2(info::log::Ilog& log);
            void addOcrOperatorV2(info::log::Ilog& log);
            void addWin32InputOperatorV2(info::log::Ilog& log);
            void addResponseOperator(info::log::Ilog& log);
-           void addYoloUIOperator(info::log::Ilog& log);
 
+           void addYoloOperator(info::log::Ilog& log);
+           void addQueryYoloMap(info::log::Ilog& log);
            void addOcrAsyncOperatorV2(info::log::Ilog& log);
            void addGetTask(info::log::Ilog& log);
 

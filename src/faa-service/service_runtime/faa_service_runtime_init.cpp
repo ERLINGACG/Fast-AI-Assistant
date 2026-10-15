@@ -1,7 +1,7 @@
 //
 // Created by HP on 2026/7/21.
 //
-#include "faa-core/win_utils/faa_win_utils.h"
+#include "faa_core/win_utils/faa_win_utils.h"
 #include "../../../include/faa_service/runtime/faa_servuce_runtime_init.h"
 
 bool faa::service::rt::init::faa_wgc_init(FaaWgcCapResources& resources, const std::string& target_key, const Ilog& log){

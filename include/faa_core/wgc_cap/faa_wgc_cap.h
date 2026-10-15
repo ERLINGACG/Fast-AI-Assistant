@@ -8,7 +8,7 @@
 #include "faa_wgc_ctx.h"
 #include "faa_wgc_data.h"
 #include "info/ilog/ilog.h"
-#include "faa-core/faa_export.h"
+#include "faa_core/faa_export.h"
 
 namespace faa::core::cap::wgc {
 

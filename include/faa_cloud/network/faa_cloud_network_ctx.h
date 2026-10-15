@@ -50,7 +50,7 @@ namespace faa::cloud::net_work {
                 WSACleanup();
                 return code::network_error;
               }
-            log.info("socket create success");
+            log.info("socket create success, port: {}",this->config_.value("port",8080));
             return code::success;
         };
     };

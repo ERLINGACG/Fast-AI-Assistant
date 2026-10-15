@@ -57,6 +57,7 @@ endfunction()
 
 function(build_cloud_ms_sub)
     add_subdirectory(microservices/arknights)
+    add_subdirectory(microservices/general)
 endfunction()
 
 build_cloud_lib()

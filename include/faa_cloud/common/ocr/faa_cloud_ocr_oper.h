@@ -7,10 +7,10 @@
 #include <opencv2/core/mat.hpp>
 
 #include "faa_cloud_ocr.h"
-#include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
-#include "faa-core/fdnn/runtime/faa_dnn_rt_code.h"
+#include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
+#include "faa_core/fdnn/runtime/faa_dnn_rt_code.h"
 
 namespace faa::cloud::common::ocr{
 

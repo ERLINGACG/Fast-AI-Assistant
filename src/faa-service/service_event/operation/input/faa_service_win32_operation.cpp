@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include "faa-core/input/windows_input_code.h"
+#include "faa_core/input/windows_input_code.h"
 #include "faa_service/resources/faa_service_resources_input.h"
 #include "faa_service/service_event/faa_service_event_task.h"
 

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <windows.h>
-#include "faa-core/faa_export.h"
+#include "faa_core/faa_export.h"
 namespace faa::input::windows{
 
 
@@ -80,6 +80,7 @@ namespace faa::input::windows{
             {"left_click", ClickMouseInfo::ClickType::LeftClick},
             {"right_click", ClickMouseInfo::RightClick},
         };
+
         std::map<std::string, WORD> key_map{
             {"A", 0x41}, {"B", 0x42}, {"C", 0x43}, {"D", 0x44},
             {"E", 0x45}, {"F", 0x46}, {"G", 0x47}, {"H", 0x48},

@@ -11,10 +11,10 @@
 
 #include "net_work/faa_net_work.h"
 #include "runtime/faa_service_runtime.h"
-#include "faa-core/faa_data.h"
-#include "../faa-core/thread_pool/faa_thread_pool.h"
-#include "faa-core/input/windows_input.h"
-#include "faa-core/wgc_cap/faa_wgc_cap.h"
+#include "faa_core/faa_data.h"
+#include "../faa_core/thread_pool/faa_thread_pool.h"
+#include "faa_core/input/windows_input.h"
+#include "faa_core/wgc_cap/faa_wgc_cap.h"
 #include "info/ilog/ilog.h"
 
 namespace faa::service {

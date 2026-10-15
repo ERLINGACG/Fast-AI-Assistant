@@ -12,7 +12,7 @@
 #include "runtime/faa_service_runtime.h"
 #include <mutex>
 
-#include "faa-core/input/windows_input.h"
+#include "faa_core/input/windows_input.h"
 
 
 namespace faa::service::operation{

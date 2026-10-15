@@ -84,7 +84,6 @@ int main(){
         .initYoloList(log)
         .initOcr(log);
 
-         // initYolo(log);
 
     try {
         service.startV2(log);

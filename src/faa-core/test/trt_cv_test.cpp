@@ -7,10 +7,10 @@
 #include <gdlz/trt/cv/core/trt_cv_core.h>
 #include <opencv2/opencv.hpp>
 
-#include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
-#include "faa-core/fdnn/runtime/faa_dnn_executor.h"
+#include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
+#include "faa_core/fdnn/runtime/faa_dnn_executor.h"
 using gdlz::trt::icv::core::TensorRTCvCoreFramework;
 using gdlz::trt::icv::core::TensorRTCvCtx;
 using gdlz::trt::core::cuda::DataType;

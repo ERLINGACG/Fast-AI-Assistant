@@ -8,10 +8,10 @@
 #include <string>
 
 #include "faa_service_resources_dnn.h"
-#include "faa-core/fdnn/fcv/faa_dnn_cv_trt.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
-#include "faa-core/fdnn/runtime/faa_dnn_executor.h"
+#include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_rec_proc.h"
+#include "faa_core/fdnn/runtime/faa_dnn_executor.h"
 
 namespace faa::service::resources::ocr{
 

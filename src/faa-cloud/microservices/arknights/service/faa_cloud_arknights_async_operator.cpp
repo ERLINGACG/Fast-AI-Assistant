@@ -2,7 +2,7 @@
 // Created by HP on 2026/9/1.
 //
 #define WIN32_LEAN_AND_MEAN
-#include "faa-core/win_utils/faa_win_utils.h"
+#include "faa_core/win_utils/faa_win_utils.h"
 #include "faa_cloud/common/ocr/faa_cloud_ocr_oper.h"
 #include "faa_cloud/microservices/arknights/service/faa_cloud_arknights_service.h"
 #include "faa_cloud/network/faa_cloud_network_ack.h"

@@ -6,7 +6,7 @@
 #define FASTSCREEN_FAA_NETWORK_H
 #include <string>
 
-#include "faa-core/faa_export.h"
+#include "faa_core/faa_export.h"
 #include "faa_cloud_network_ctx.h"
 #include "faa_cloud_network_load.h"
 

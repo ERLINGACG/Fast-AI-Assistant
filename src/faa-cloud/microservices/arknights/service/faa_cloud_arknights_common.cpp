@@ -1,7 +1,7 @@
 //
 // Created by HP on 2026/9/7.
 //
-#include "faa-core/win_utils/faa_win_utils.h"
+#include "faa_core/win_utils/faa_win_utils.h"
 #include "faa_cloud/common/ocr/faa_cloud_ocr_oper.h"
 #include "faa_cloud/microservices/arknights/service/faa_cloud_arknights_service.h"
 using faa::cloud::microservices::arknigths::FaaArknightsService;

@@ -4,7 +4,7 @@
 
 #ifndef FASTSCREEN_FAA_SERVICE_WGC_OPERATION_H
 #define FASTSCREEN_FAA_SERVICE_WGC_OPERATION_H
-#include "faa-core/wgc_cap/faa_wgc_cap.h"
+#include "faa_core/wgc_cap/faa_wgc_cap.h"
 #include "faa_service/resources/faa_service_resources.h"
 
 namespace faa::service::operation{

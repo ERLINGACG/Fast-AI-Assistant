@@ -7,15 +7,15 @@
 #include <string>
 #include <vector>
 #include <gdlz/trt/core/cuda/trt_cuda_data.h>
-#include "faa-core/faa_export.h"
+#include "faa_core/faa_export.h"
 namespace faa::fdnn::rt{
-    template<typename B,typename C>
+    template<typename B,typename C> // <Backend,Context>
     class FAA_CPP_EXPORT FaaDnnExecutor{
         std::unique_ptr<B> backend;
         public:
            explicit FaaDnnExecutor(std::unique_ptr<B> backend) : backend(std::move(backend)) {}
 
-          ~FaaDnnExecutor()=default;
+          // ~FaaDnnExecutor()=default;
 
 
 

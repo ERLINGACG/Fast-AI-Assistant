@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-#include "faa-core/fdnn/runtime/faa_dnn_executor.h"
+#include "faa_core/fdnn/runtime/faa_dnn_executor.h"
 
 namespace faa::service::resources::dnn {
 

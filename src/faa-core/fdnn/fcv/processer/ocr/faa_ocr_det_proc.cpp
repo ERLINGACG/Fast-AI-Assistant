@@ -1,7 +1,7 @@
 //
 // Created by HP on 2026/7/13.
 //
-#include "faa-core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
+#include "faa_core/fdnn/fcv/processer/ocr/faa_ocr_det_proc.h"
 using faa::fdnn::fcv::processer::ocr::FaaOcrDetProc;
 using faa::fdnn::fcv::processer::ocr::FaaDetPreParam;
 using faa::fdnn::rt::code::FaaDnnRtCode;

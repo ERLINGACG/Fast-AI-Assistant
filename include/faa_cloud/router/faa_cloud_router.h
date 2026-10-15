@@ -4,7 +4,7 @@
 
 #ifndef FASTSCREEN_FAA_CLOUD_ROUTER_H
 #define FASTSCREEN_FAA_CLOUD_ROUTER_H
-#include "faa-core/thread_pool/faa_thread_pool.h"
+#include "faa_core/thread_pool/faa_thread_pool.h"
 #include "faa_cloud/network/faa_cloud_network.h"
 
 namespace  faa::cloud::router{
@@ -13,6 +13,7 @@ namespace  faa::cloud::router{
     struct MsInfo{
         int32_t id{};
         std::string name;
+        std::string state;
         sockaddr_in addr{};
     };
 
@@ -27,13 +28,14 @@ namespace  faa::cloud::router{
             if (map.contains(id)){
                 return ;
             }
-            map[id]={id,name,addr};
+            map[id]={id,name,"online",addr};
         }
 
         auto unregisterMs(const int32_t id){
             std::lock_guard lock(mutex);
             if (map.contains(id)){
-                map.erase(id);
+                // map.erase(id);
+                map[id].state="offline";
             }
         }
 
@@ -49,7 +51,10 @@ namespace  faa::cloud::router{
                     return val;
                 }
             }
-            return MsInfo{0,"",{0,0,0,0}};
+            return MsInfo{0,"",
+                "offline",
+                {0,0,0,0}
+            };
         }
 
         auto getInfo(){
@@ -58,7 +63,8 @@ namespace  faa::cloud::router{
             for (const auto& val : map | std::views::values){
                 ms_info[val.id]={
                     {"id",  val.id},
-                    {"name",val.name}
+                    {"name",val.name},
+                    {"state",val.state}
                 };
             }
             return ms_info;
@@ -95,7 +101,7 @@ namespace  faa::cloud::router{
             FaaCloudRouter& join();
 
 
-            bool responseV2 (net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
+            bool responseV2   (net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
             bool queryMsInfoV2(net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
             bool routeMsInfoV2(net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);
             bool registerMsV2 (net_work::FaaCloudNetworkLoad& load, sockaddr_in& addr);

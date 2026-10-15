@@ -5,7 +5,7 @@
 
 #include <thread>
 
-#include "faa-core/thread_pool/faa_thread_pool.h"
+#include "faa_core/thread_pool/faa_thread_pool.h"
 #include "faa_service/scheduler/faa_service_scheduler.h"
 using faa::service::orchestrator::FaaServiceOrchestrator;
 

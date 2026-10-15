@@ -5,7 +5,7 @@
 #ifndef FASTSCREEN_FAA_DNN_RT_INIT_H
 #define FASTSCREEN_FAA_DNN_RT_INIT_H
 #include "faa_service_runtime.h"
-#include "faa-core/input/windows_input.h"
+#include "faa_core/input/windows_input.h"
 #include "nlohmann/json.hpp"
 
 namespace faa::service::rt::init{
