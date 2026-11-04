@@ -5,8 +5,7 @@
 #ifndef FASTSCREEN_FAA_WGC_DATA_H
 #define FASTSCREEN_FAA_WGC_DATA_H
 #include <cstdint>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/core/mat.hpp>
+#include "faa_core/frame/faa_mat.h"
 
 namespace faa::core::cap::wgc {
 
@@ -18,13 +17,8 @@ namespace faa::core::cap::wgc {
         uint32_t DepthPitch;
         uint8_t* data;
 
-        auto textureForMat(cv::Mat& mat) const {
-            if (this->data ==nullptr) {
-                return;
-            }
-            cv::Mat bgraMat(height, width, CV_8UC4, data, RowPitch);
-            cv::cvtColor(bgraMat, mat, cv::COLOR_BGRA2BGR);
-        }
+
+        void textureForMat(frame::FaaMat& mat);
     };
 }
 #endif //FASTSCREEN_FAA_WGC_DATA_H

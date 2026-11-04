@@ -25,6 +25,7 @@ namespace faa::cloud::microservices::base::resource
         [[nodiscard]] auto& get() const{
             return *network;
         }
+
     };
 
     struct Cap {

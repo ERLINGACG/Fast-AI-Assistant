@@ -1,0 +1,10 @@
+//
+// Created by HP on 2026/10/27.
+//
+
+#ifndef FASTAIASSISTANT_ROOT_FAA_INPUT_TOP_ENUM_H
+#define FASTAIASSISTANT_ROOT_D_ENUM_H
+namespace faa::core::input {
+
+}
+#endif //FASTAIASSISTANT_ROOT_FAA_INPUT_TOP_ENUM_H

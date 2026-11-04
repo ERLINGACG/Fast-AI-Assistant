@@ -24,8 +24,11 @@ namespace info::log{
 
             void message(const std::string& log_level,const std::string& fmt) const {
                 std::cout << time::get_time_str() << " "<<log_level << ": " << fmt;
-                if (init.enabled_endl)
+                if (init.enabled_endl) {
                     std::cout << '\n';
+                    std::cout.flush();
+                }
+
             }
 
             template<typename ... Args>

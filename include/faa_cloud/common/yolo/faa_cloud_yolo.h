@@ -5,7 +5,7 @@
 #ifndef FASTSCREEN_FAA_CLOUD_YOLO_H
 #define FASTSCREEN_FAA_CLOUD_YOLO_H
 #include <memory>
-
+#include <nlohmann/json.hpp>
 #include "faa_core/fdnn/runtime/faa_dnn_executor.h"
 
 namespace faa::cloud::common::yolo {

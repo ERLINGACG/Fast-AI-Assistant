@@ -41,23 +41,7 @@ void FaaOcrRecProc::PreProcess(cv::Mat& img, cv::Mat& blob, FaaResParam param, r
 
 void FaaOcrRecProc::PostProcess(float* output,FaaPostParam param,FaaResResult& result, rt::code::FaaDnnRtCode& code)
 {
-    // result.ids.clear();
-    // for (int t = 0; t < param.seq_len; ++t) {
-    //     // 找到当前时间步的最大值索引
-    //     int max_idx = 0;
-    //     int next_idx = 0;
-    //     float max_val = -1.0f;
-    //     float* time_step_data = output + t * param.model_vocal_size;
-    //     for (int i = 0; i < param.model_vocal_size; ++i) {
-    //         if (time_step_data[i] > max_val) {
-    //             max_val = time_step_data[i];
-    //             max_idx = i;
-    //         }
-    //     }
-    //     if (max_idx!=0){
-    //         result.ids.push_back(max_idx);
-    //     }
-    // }
+
     result.ids.clear();
 
     const int blank_id = 0;   // PP-OCR CTC blank

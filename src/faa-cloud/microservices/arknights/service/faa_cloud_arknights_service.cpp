@@ -28,7 +28,7 @@ FaaArknightsService& FaaArknightsService::initThreadPool(std::unique_ptr<core::t
 FaaArknightsService& FaaArknightsService::startV2(info::log::Ilog& log) {
 
     net_work::FaaCloudNetworkLoad load_;
-    load_.serialize(nlohmann::json({
+    load_.deserialize(nlohmann::json({
          {"operation","register"},
          {"body",
             {
@@ -107,7 +107,7 @@ void FaaArknightsService::loop_v2(info::log::Ilog& log)
         this->thread_pool_->enqueue([this,message,target_addr,&log]() {
                  try{
                      FaaCloudNetworkLoad load;
-                     load.serialize(nlohmann::json::parse(message));
+                     load.deserialize(nlohmann::json::parse(message));
 
                      sockaddr_in response_addr{};
 

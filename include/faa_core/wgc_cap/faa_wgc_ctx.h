@@ -2,8 +2,8 @@
 // Created by HP on 2026/6/30.
 //
 
-#ifndef FASTSCREEN_FAA_WGC_CTX_H
-#define FASTSCREEN_FAA_WGC_CTX_H
+#ifndef FAA_WGC_CTX_H
+#define FAA_WGC_CTX_H
 #include <winrt/Windows.Graphics.Capture.h>
 #include <winrt/Windows.Graphics.DirectX.h>
 #include <d3d11.h>
@@ -22,4 +22,4 @@ namespace faa::core::cap::wgc{
         HMONITOR monitor{};
     };
 }
-#endif //FASTSCREEN_FAA_WGC_CTX_H
+#endif //FAA_WGC_CTX_H

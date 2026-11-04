@@ -30,7 +30,7 @@ void FaaArknightsService::addResponseOperator(info::log::Ilog& log) {
     this->operator_map_v2["response"]=[this,&log](
 
         net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
-        log.debug("response to {}",load.unserialize().dump());
+        log.debug("response to {}",load.serialize().dump());
         load.setBody({{"response","im find"}});
         this->network_->sendLoad(
             load,
@@ -47,7 +47,7 @@ void FaaArknightsService::addYoloOperator(info::log::Ilog& log) {
 
     this->operator_map_v2["yolo_det"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr) {
 
-        log.debug("yolo_det to {}",load.unserialize().dump());
+        log.debug("yolo_det to {}",load.serialize().dump());
 
         auto model = this->yolo_map.find(load.body().data.value("model",""));
 
@@ -92,7 +92,7 @@ void FaaArknightsService::addYoloOperator(info::log::Ilog& log) {
 
 void FaaArknightsService::addQueryYoloMap(info::log::Ilog& log) {
     this->operator_map_v2["query_yolo_map"]=[this,&log](net_work::FaaCloudNetworkLoad& load,sockaddr_in& response_addr){
-        log.debug("query_yolo_map to {}",load.unserialize().dump());
+        log.debug("query_yolo_map to {}",load.serialize().dump());
         nlohmann::json result = nlohmann::json::array();
         for (const auto& key : this->yolo_map | std::views::keys){
             result.push_back(key);
@@ -124,20 +124,14 @@ void FaaArknightsService::addWgcOperatorV2(info::log::Ilog& log) {
 
         this->get_frames_running.store(false);
         this->get_frames_thread=std::thread([this,&log,response_addr,load = std::move(load)]() mutable {
-            const auto d3d_ctx = std::make_unique<core::cap::wgc::D3DDeviceContext>();
-            const auto wgc_rt  = std::make_unique<core::cap::wgc::WGCRunTimeContext>();
+
             const auto window_capture =
                   std::make_unique<core::cap::wgc::FAAWindowCapture>(
                       this->config_.value("target",""),
                       log
                   );
 
-            window_capture->
-                  initD3d11(*d3d_ctx).
-                  initWgcRtCtx(*wgc_rt).startSession();
-
-
-           if (!window_capture->is_init()){
+             if (!window_capture->open(&log)){
 
                log.error("wgc init failed");
                load.clearBody();
@@ -160,7 +154,8 @@ void FaaArknightsService::addWgcOperatorV2(info::log::Ilog& log) {
                 response_addr
             );
 
-            frame::wgc_loop_v2(
+            frame::wgc_loop_v3(
+                [this](){return this->get_frames_running.load();},
                 this->get_frames_running,
                 *window_capture,
                 *this->frame_resources,

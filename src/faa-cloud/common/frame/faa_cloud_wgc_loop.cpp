@@ -3,74 +3,49 @@
 //
 
 #include "faa_cloud/common/frame/faa_cloud_wgc_loop.h"
-
+#include "faa_core/frame/private/faa_mat_impi.h"
 #include "faa_core/wgc_cap/faa_wgc_cap.h"
+#include "faa_cloud/common/frame/private/faa_cloud_frame_impl.h"
+using faa::cloud::frame::Frames;
+using faa::cloud::frame::FramesImpl;
 
-void faa::cloud::frame::wgc_loop(
-    const std::atomic<bool>& isRunning,
-    const std::string& target,
-    Frames& frame_resources,
-    const info::log::Ilog& ilog,
-    int32_t fps,
-    int32_t max_frame_rate){
 
-    const core::cap::wgc::D3DDeviceContext  d3d_ctx;
-    const core::cap::wgc::WGCRunTimeContext wgc_rt;
 
-    // if (!isRunning.load()) {
-    //     return;
-    // }
-    // if (!isRunning.load()) {
-    //     return;
-    // }
-    auto window_capture =
-        std::make_unique<core::cap::wgc::FAAWindowCapture>(target, ilog);
-
-    window_capture->initD3d11(d3d_ctx).initWgcRtCtx(wgc_rt).startSession();
-
-    if (!window_capture->is_init()) {
-        return;
-    }
-    while (isRunning.load()){
-        core::cap::wgc::WgcTextureData wgc_texture_data{};
-        cv::Mat frame{};
-        window_capture->getFrame(wgc_texture_data,frame);
-        if (!frame.empty()) {
-             frame_resources.push(frame);
-             frame_resources.keep(max_frame_rate);
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000/fps));
-    }
-}
-
-void faa::cloud::frame::wgc_loop_v2(const std::atomic<bool>& isRunning,
+void faa::cloud::frame::wgc_loop_v3(const std::function<bool()> call_back, const std::atomic<bool>& isRunning,
     core::cap::wgc::FAAWindowCapture& window_capture, Frames& frame_resources, int32_t fps, int32_t max_frame_rate)
 {
-    while (isRunning.load()){
-        core::cap::wgc::WgcTextureData wgc_texture_data{};
-        cv::Mat frame{};
-        window_capture.getFrame(wgc_texture_data,frame);
-        if (!frame.empty()) {
-            frame_resources.push(frame);
-            frame_resources.keep(max_frame_rate);
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000/fps));
-    }
-}
+    using clock = std::chrono::steady_clock;
 
-void faa::cloud::frame::wgc_loop_v3(std::function<bool()> call_back, const std::atomic<bool>& isRunning,
-    core::cap::wgc::FAAWindowCapture& window_capture, Frames& frame_resources, int32_t fps, int32_t max_frame_rate)
-{
-    while (call_back()){
-        // call_back();
-        core::cap::wgc::WgcTextureData wgc_texture_data{};
-        cv::Mat frame{};
-        window_capture.getFrame(wgc_texture_data,frame);
-        if (!frame.empty()) {
-            frame_resources.push(frame);
+    auto last_report = clock::now();
+    uint64_t loop_count = 0;
+    uint64_t frame_count = 0;
+
+    while (call_back()) {
+        ++loop_count;
+
+        core::frame::FaaMat mat;
+        window_capture >> mat;
+        if (mat.impl()->mat.empty())
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+
+        if (!mat.empty()) {
+            ++frame_count;
+            frame_resources.push(mat);
             frame_resources.keep(max_frame_rate);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000/fps));
+
+        auto now = clock::now();
+        double elapsed = std::chrono::duration<double>(now - last_report).count();
+        if (elapsed >= 1.0) {
+            std::cout << "[wgc_loop] loop_fps=" << (loop_count / elapsed)
+                      << "  frame_fps=" << (frame_count / elapsed)
+                      << "  (loops=" << loop_count << ", frames=" << frame_count << ")\n";
+            loop_count = 0;
+            frame_count = 0;
+            last_report = now;
+        }
+
     }
 }
 

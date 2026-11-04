@@ -15,10 +15,6 @@ namespace faa::fdnn::rt{
         public:
            explicit FaaDnnExecutor(std::unique_ptr<B> backend) : backend(std::move(backend)) {}
 
-          // ~FaaDnnExecutor()=default;
-
-
-
           B& initEngine(){
               return backend->initEngine();
           }

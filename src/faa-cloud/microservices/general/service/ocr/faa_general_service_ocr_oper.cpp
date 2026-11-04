@@ -3,7 +3,10 @@
 //
 #include "faa_cloud/common/ocr/faa_cloud_ocr_oper.h"
 #include "faa_cloud/microservices/general/service/faa_cloud_general.h"
+#include "faa_cloud/common/frame/faa_cloud_frame.h"
+#include "faa_cloud/common/frame/private/faa_cloud_frame_impl.h"
 using faa::cloud::microservices::general::FaaCloudGeneralServices;
+
 
 void FaaCloudGeneralServices::addOcrOper(info::log::Ilog* log) {
     this->operat.push("ocr",[this,log]
@@ -11,7 +14,7 @@ void FaaCloudGeneralServices::addOcrOper(info::log::Ilog* log) {
     (net_work::FaaCloudNetworkLoad& load,sockaddr_in response_addr){
         // log->info("ocr to {}",load.unserialize().dump());
         cv::Mat frame;
-        this->cap.frame_resources.peek(frame);
+        this->cap.frame_resources.impl()->peek(frame);
         if (frame.empty()) {
             log->error("frame is empty");
             load.setBody({

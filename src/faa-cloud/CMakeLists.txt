@@ -24,11 +24,23 @@ function(build_cloud_lib)
     set(FAA-C-SOURCES
             network/faa_cloud_network.cpp
             common/frame/faa_cloud_wgc_loop.cpp
+            common/frame/private/faa_cloud_frame_impl.cpp
             common/input/faa_cloud_win32_input.cpp
+
+            network/private/faa_cloud_network_impl.cpp
+            network/private/faa_cloud_request_impl.cpp
+
+            network/load/faa_cloud_network_load.cpp
+
+            base/private/faa_cloud_base_network_oper.cpp
+            base/private/faa_cloud_base_loop.cpp
+            base/private/faa_cloud_base_network_send.cpp
+
     )
     add_library(FaaCloud SHARED ${FAA-C-SOURCES})
     add_definitions(-DNOMINMAX)
     add_dependencies(FaaCloud FaaCore)
+
     target_include_directories(FaaCloud PUBLIC ${FAA-C-INCLUDE_DIRS})
     target_link_directories(FaaCloud PUBLIC ${FAA-C-LIBRARIES})
     target_link_libraries(
@@ -37,31 +49,33 @@ function(build_cloud_lib)
     )
 endfunction()
 
-function(build_cloud_router_exec)
-    set(FAA-C-Router-SOURCES
-            router/faa_cloud_router.cpp
-            router/faa_cloud_router_operation.cpp
-            run/faa_cloud_router_run.cpp
-    )
-    add_definitions(-DNOMINMAX)
-    add_executable(FaaCloudRouter ${FAA-C-Router-SOURCES})
-    add_dependencies(FaaCloudRouter FaaCloud)
-    target_include_directories(FaaCloudRouter PUBLIC ${FAA-C-INCLUDE_DIRS})
-    target_link_directories(FaaCloudRouter PUBLIC ${FAA-C-LIBRARIES})
-    target_link_libraries(
-            FaaCloudRouter PUBLIC
-            ${FAA-C-LINK_LIB_NAME} FaaCloud
-    )
-endfunction()
+#function(build_cloud_router_exec)
+#    set(FAA-C-Router-SOURCES
+#            router/faa_cloud_router.cpp
+#            router/faa_cloud_router_operation.cpp
+#            run/faa_cloud_router_run.cpp
+#    )
+#    add_definitions(-DNOMINMAX)
+#    add_executable(FaaCloudRouter ${FAA-C-Router-SOURCES})
+#    add_dependencies(FaaCloudRouter FaaCloud)
+#    target_include_directories(FaaCloudRouter PUBLIC ${FAA-C-INCLUDE_DIRS})
+#    target_link_directories(FaaCloudRouter PUBLIC ${FAA-C-LIBRARIES})
+#    target_link_libraries(
+#            FaaCloudRouter PUBLIC
+#            ${FAA-C-LINK_LIB_NAME} FaaCloud
+#    )
+#endfunction()
 
 
 function(build_cloud_ms_sub)
     add_subdirectory(microservices/arknights)
     add_subdirectory(microservices/general)
+    add_subdirectory(microservices/route)
+    add_subdirectory(microservices/inputs)
 endfunction()
 
 build_cloud_lib()
-build_cloud_router_exec()
+
 build_cloud_ms_sub()
 
 

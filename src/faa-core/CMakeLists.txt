@@ -1,13 +1,52 @@
 project(FaaCore)
 set(FAA-C-SOURCES
        win_utils/windows_utils.cpp
+
        input/windows_input.cpp
+
+
+       input/keyboard/faa_keyboard_active.cpp
+       input/keyboard/faa_keyboard_input.cpp
+       input/keyboard/faa_keyboard_input_apply.cpp
+       input/keyboard/faa_keyboard_params_build.cpp
+
+       input/mouse/faa_mouse_input_move.cpp
+       input/mouse/faa_mouse_input_click.cpp
+       input/mouse/faa_mouse_input.cpp
+       input/mouse/faa_mouse_params_build.cpp
+
+
+       frame/private/faa_mat_impi.cpp
+       wgc_cap/private/faa_texture_impi.cpp
+       wgc_cap/private/faa_wgc_cap_impi.cpp
        wgc_cap/faa_wgc_cap.cpp
+
+       fdnn/backend/trt_cv/faa_cv_dnn_trt.cpp
+       fdnn/backend/trt_cv/faa_cv_dnn_trt_init.cpp
+       fdnn/backend/trt_cv/faa_cv_dnn_trt_run.cpp
+       fdnn/backend/trt_cv/private/faa_cv_trt_framework_impl.cpp
+       fdnn/backend/trt_cv/private/faa_cv_trt_ctx_impl.cpp
+
+       fdnn/model/base/faa_dnn_model_base.cpp
+       fdnn/model/base/faa_dnn_layers.cpp
+       fdnn/model/ocr/faa_ocr_det_model.cpp
+
+
+
+       fdnn/general/ocr/faa_cv_ocr_det_pros.cpp
+       fdnn/general/blob/faa_cv_set_blob.cpp
+
+
+
 
        fdnn/fcv/faa_dnn_cv_trt.cpp
        fdnn/fcv/processer/ocr/faa_ocr_det_proc.cpp
        fdnn/fcv/processer/ocr/faa_ocr_res_proc.cpp
        fdnn/fcv/processer/ob/faa_yolo_proc.cpp
+
+       feature/faa_cv_surf_feature.cpp
+       feature/faa_cv_hough_circle.cpp
+       resource/faa_cv_resources.cpp
 )
 set(FAA-C-INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}/include
@@ -58,6 +97,11 @@ function(build_trt_engine)
     target_link_libraries(FaaBuildTrtEngine PUBLIC FaaCore)
 endfunction()
 
+function(test_run)
+  add_subdirectory(test/backend/trt)
+endfunction()
+
 input_test()
 get_frame_run()
 build_trt_engine()
+test_run()

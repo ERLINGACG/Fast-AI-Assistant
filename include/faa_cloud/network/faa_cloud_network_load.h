@@ -2,10 +2,8 @@
 // Created by HP on 2026/9/15.
 //
 
-#ifndef FASTSCREEN_FAA_CLOUD_NETWORK_RELOAD_H
-#define FASTSCREEN_FAA_CLOUD_NETWORK_RELOAD_H
-#include <ws2def.h>
-#include <ws2tcpip.h>
+#ifndef FASTAIASSISTANT_ROOT_FAA_CLOUD_NETWORK_LOAD_H
+#define FASTAIASSISTANT_ROOT_FAA_CLOUD_NETWORK_LOAD_H
 #include <nlohmann/json.hpp>
 
 namespace faa::cloud::net_work {
@@ -19,52 +17,31 @@ namespace faa::cloud::net_work {
         std::string router_to;
         std::string request_ip;
         uint16_t    request_port;
+        std::string br_host;
+        uint16_t    br_port;
         int         slice_len;
 
+        auto deserialize(const nlohmann::json& data){
 
-        auto serialize(const sockaddr_in& addr,const nlohmann::json& data){
-            char ip_str[INET_ADDRSTRLEN];
-            const std::string requester_ip(inet_ntop(AF_INET,&(addr.sin_addr), ip_str,INET_ADDRSTRLEN));
-            const uint16_t requester_port = ntohs(addr.sin_port);
+            // this->data = data;
+            operation     = data.value("operation","");
+            router_to     = data.value("router_to","");
+            request_ip    = data.value("request_ip","");
+            request_port  = data.value("request_port",0);
+            slice_len     = data.value("slice_len",0);
 
-            this->operation   =data.value("operation","");
-            this->router_to   =data.value("router_to","");
-            this->request_ip  =requester_ip;
-            this->request_port=requester_port;
-
-            this->data["operation"]   =operation;
-            this->data["router_to"]    =router_to;
-            this->data["request_ip"]   =request_ip;
-            this->data["request_port"] =request_port;
-            this->data["slice_len"]    =slice_len;
-
-        }
-
-        auto serialize(const nlohmann::json& data){
-
-            this->data = data;
-            operation     =data.value("operation","");
-            router_to     =data.value("router_to","");
-            request_ip    =data.value("request_ip","");
-            request_port  =data.value("request_port",0);
-            slice_len     =data.value("slice_len",0);
+            br_host     = data.value("br_host","");
+            br_port     = data.value("br_port",0);
 
             this->data["operation"]=operation;
             this->data["router_to"]=router_to;
             this->data["request_ip"]=request_ip;
             this->data["request_port"]=request_port;
             this->data["slice_len"]=slice_len;
+            this->data["br_host"]=br_host;
+            this->data["br_port"]=br_port;
 
         }
-
-        auto set_slice_len(int len){
-            slice_len = len;
-            this->data["slice_len"]=slice_len;
-        }
-
-
-
-
     };
     struct LoadBody {
 
@@ -72,86 +49,37 @@ namespace faa::cloud::net_work {
         nlohmann::json data;
         std::vector<nlohmann::json> slices;
 
-        auto serialize(const nlohmann::json& data){
-            this->slice_len = data.value("slice_len",0);
-            this->data      = data.value("body",nlohmann::json({}));
-        }
+        void deserialize(const nlohmann::json& data);
+        void push_back(const nlohmann::json& data);
 
-        auto addSlice(const nlohmann::json& data){
-            auto ids = "slice_"+std::to_string(slices.size());
-            slices.push_back(
-                {
-                        {ids,data}
-                       }
-            );
-            slice_len ++;
-            return *this;
-        }
 
-        auto setBody(const nlohmann::json& data){
-            this->data = data;
-        }
+        [[nodiscard]] nlohmann::json serialize() const;
+        void clear();
 
-        auto clear(){
-             slice_len = 0;
-             slices.clear();
-             data = nlohmann::json({});
-             return *this;
-        }
+
     };
 
     struct  FaaCloudNetworkLoad {
 
-        LoadHead head_;
-        LoadBody body_;
+        LoadHead head;
+        LoadBody body;
 
-        auto serialize(const sockaddr_in& addr,const nlohmann::json& data){
-            head_.serialize(addr,data);
-            body_.serialize(data);
-            return *this;
+        [[nodiscard]] auto& getHead() const {
+            return head;
+        }
+        [[nodiscard]] auto& getBody() const{
+            return body;
         }
 
-        auto serialize(const nlohmann::json& data){
-            head_.serialize(data);
-            body_.serialize(data);
-            return *this;
-        }
-
-        auto setBody(const nlohmann::json& data){
-            body_.setBody(data);
-            return *this;
-        }
-
-        auto addSlice(const nlohmann::json& data){
-            body_.addSlice(data);
-            return *this;
-        }
-
-        [[nodiscard]] auto unserialize(){
-
-            head_.set_slice_len(body_.slice_len);
-            auto response = nlohmann::json(head_.data);
-
-            if(head_.slice_len == 0){
-                response["body"]= body_.data;
-            }
-            return response;
-        }
-
-        auto& head(){
-            return head_;
-        }
-
-        auto& body(){
-            return body_;
+        void setBody(const nlohmann::json& data){
+            this->body.data = data;
         }
 
         auto clearBody(){
-            body_.clear();
+            body.clear();
         }
-
 
 
     };
 }
-#endif //FASTSCREEN_FAA_CLOUD_NETWORK_RELOAD_H
+#endif //FASTAIASSISTANT_ROOT_FAA_CLOUD_NETWORK_LOAD_H

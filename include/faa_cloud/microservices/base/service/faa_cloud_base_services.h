@@ -11,6 +11,7 @@
 #include "info/ilog/ilog.h"
 #include "faa_cloud/microservices/base/resource/faa_cloud_resource.h"
 #include "faa_cloud/command/faa_command_tree.h"
+#include "faa_core/resources/faa_cv_resources.h"
 #include "faa_core/thread_pool/faa_thread_pool.h"
 
 namespace faa::cloud::microservices::base {
@@ -26,7 +27,7 @@ namespace faa::cloud::microservices::base {
 
 
     protected:
-
+        using FaaCvResource = core::fcv::resources::FaaCvResource;
 
         nlohmann::json config{};
 
@@ -38,20 +39,21 @@ namespace faa::cloud::microservices::base {
         resource::Network    network{};
         resource::ThreadsMap threads{};
         resource::Cap        cap{};
-
+        FaaCvResource        cv_resource{};
 
 
         resource::OperatMap<
-            net_work::FaaCloudNetworkLoad&,
-            sockaddr_in&
+            net_work::FaaCloudNetworkRequest&
         > operat{};
 
 
 
     public:
-        T& setConfig (nlohmann::json& config,info::log::Ilog* log = nullptr);
-        T& setNetwork(std::unique_ptr<net_work::FaaCloudNetwork> network);
-        T& setSignal(const std::string& name,bool value);
+        T& setConfig        (nlohmann::json& config,info::log::Ilog* log = nullptr);
+        T& setResourceConfig(nlohmann::json& config,info::log::Ilog* log = nullptr);
+        T& setNetwork(std::unique_ptr<net_work::FaaCloudNetwork> network,info::log::Ilog* log = nullptr);
+
+        T& setSignal (const std::string& name,bool value);
         T& registerDefine(info::log::Ilog* log = nullptr);
 
         T& init ();
@@ -61,7 +63,12 @@ namespace faa::cloud::microservices::base {
         T& stop ();
 
 
-        T& addThread(const std::string& name,std::thread thread,resource::ThreadsMap::running_type type,info::log::Ilog* log = nullptr);
+        T& addThread(
+            const std::string& name,
+            std::thread thread,
+            resource::ThreadsMap::running_type type,
+            info::log::Ilog* log = nullptr);
+
         T& addCommand(
             std::unique_ptr<command::FaaCommandTreeNode> cmd,
             const std::vector<std::string>& path,

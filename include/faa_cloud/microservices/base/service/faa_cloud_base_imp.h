@@ -2,8 +2,8 @@
 // Created by HP on 2026/10/9.
 //
 
-#ifndef FASTSCREEN_FAA_CLOUD_BASE_IMP_H
-#define FASTSCREEN_FAA_CLOUD_BASE_IMP_H
+#ifndef FASTAIASSISTANT_ROOT_FAA_CLOUD_BASE_IMP_H
+#define FASTAIASSISTANT_ROOT_FAA_CLOUD_BASE_IMP_H
 #include "info/ilog/ilog.h"
 
 namespace faa::cloud::microservices::base
@@ -11,15 +11,30 @@ namespace faa::cloud::microservices::base
     template <typename T>
     T& FaaCloudBaseServices<T>::setConfig(nlohmann::json& config,info::log::Ilog* log) {
         if(log) {
-            log->debug("set config");
+            log->debug("set config {}",config.dump());
             this->config = config;
         }
         return static_cast<T&>(*this);;
     }
 
     template <typename T>
-    T& FaaCloudBaseServices<T>::setNetwork(std::unique_ptr<net_work::FaaCloudNetwork> network) {
+    T& FaaCloudBaseServices<T>::setResourceConfig(nlohmann::json& config,info::log::Ilog* log) {
+        if(log) {
+            log->debug("set resource config");
+
+        }
+        this->cv_resource.setConfig(config).load(log);
+        return static_cast<T&>(*this);;
+    }
+
+    template <typename T>
+    T& FaaCloudBaseServices<T>::setNetwork(std::unique_ptr<net_work::FaaCloudNetwork> network,info::log::Ilog* log) {
         this->network.network=std::move(network);
+        this->network.network->init(this->config);
+        if(log) {
+            log->debug("set network");
+
+        }
         return static_cast<T&>(*this);;
     }
 
@@ -96,4 +111,4 @@ namespace faa::cloud::microservices::base
         return static_cast<T&>(*this);
     }
 }
-#endif //FASTSCREEN_FAA_CLOUD_BASE_IMP_H
+#endif //FASTAIASSISTANT_ROOT_FAA_CLOUD_BASE_IMP_H

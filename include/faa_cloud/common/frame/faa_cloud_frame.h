@@ -2,40 +2,41 @@
 // Created by HP on 2026/8/31.
 //
 
-#ifndef FASTSCREEN_FAA_CLOUD_FRAME_H
-#define FASTSCREEN_FAA_CLOUD_FRAME_H
-#include <mutex>
-#include <vector>
-#include <opencv2/core/mat.hpp>
+#ifndef FASTAIASSISTANT_ROOT_FAA_CLOUD_FRAME_H
+#define FASTAIASSISTANT_ROOT_FAA_CLOUD_FRAME_H
+#include <memory>
+
+#include "faa_core/frame/faa_mat.h"
+#include "faa_core/faa_export.h"
 
 namespace faa::cloud::frame{
 
-    struct Frames{
+    struct FramesImpl;
 
-        std::mutex frame_lock;
-        std::vector<cv::Mat> frames;
+    struct FAA_CPP_EXPORT Frames{
 
-        auto push(const cv::Mat& frame){
-            std::lock_guard lock(frame_lock);
-            frames.push_back(frame);
+
+        std::unique_ptr<FramesImpl> impi_ptr;
+
+        Frames();
+        ~Frames();
+        Frames(Frames&&) noexcept;
+        Frames(const Frames&) = delete;
+        Frames& operator=(Frames&&) noexcept;
+        Frames& operator=(const Frames&) = delete;
+
+
+        [[nodiscard]] auto& impl() const {
+            return impi_ptr;
         }
 
-        auto peek(cv::Mat& frame) {
-            std::lock_guard lock(frame_lock);
-            if (frames.empty()){
-                return;
-            }
-            frame=frames.back();
-        }
+        void peek(core::frame::FaaMat& mat) const;
 
-        auto keep(int32_t max){
-            std::lock_guard lock(frame_lock);
-            if (frames.size()>max){
-                frames.erase(frames.begin());
-            }
-        }
+        void keep(int32_t max) const;
+
+        void push(const core::frame::FaaMat& mat) const;
 
     };
 
 }
-#endif //FASTSCREEN_FAA_CLOUD_FRAME_H
+#endif //FASTAIASSISTANT_ROOT_FAA_CLOUD_FRAME_H

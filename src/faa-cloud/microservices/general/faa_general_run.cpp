@@ -32,47 +32,53 @@ int main()
         std::cerr << "cannot open service_config.json\n";
         return -1;
     }
+
     std::ifstream config_yolo_list("./config/ark/servicer_yolo_config.json");
     if (!config_yolo_list.is_open()){
         std::cerr << "cannot open servicer_yolo_config.json\n";
         return -1;
     }
+
+    std::ifstream img_res_config("./config/resource/servicer_img_res_config.json");
+    if (!img_res_config.is_open()){
+        std::cerr << "cannot open servicer_img_res_config.json\n";
+        return -1;
+    }
+
     auto config = nlohmann::json::object();
-    config_file >> config;
-    nlohmann::json yolo_list = nlohmann::json::parse(config_yolo_list);
+    auto img_res= nlohmann::json::object();
+    auto yolo_list= nlohmann::json::object();
+    config_file      >> config;
+    img_res_config   >> img_res;
+    config_yolo_list >> yolo_list;
 
     config["yolo_list_config"]=yolo_list;
+
 
     FaaCloudGeneralServices services;
     services.
         setConfig(config, &log).
-        setNetwork(
-            std::make_unique<FaaCloudNetwork>(FaaCloudNetwork(log).
-                init(config)
-            )
-        ).
+        setResourceConfig(img_res, &log).
+        // setNetwork(
+        //     std::make_unique<FaaCloudNetwork>(FaaCloudNetwork(log).
+        //         init(config)
+        //     )
+        // ).
         registerDefine(&log).
-
         init();
 
+
+        services.setLogger(&log);
         services.initTensorOcr(&log);
         services.initYolo(&log);
+        services.initSurfFeature(&log);
 
-        services.addCommand_loop();
+
         services.addCommand(&log);
-        services.addCapThread(&log);
-        services.addNetworkThread(&log);
 
 
-
-        services.addRequestOper(&log);
-        services.addWgcCaptureOper(&log);
-
-        services.addYoloOper(&log);
-        services.addOcrOper(&log);
-        services.addGetYoloModel(&log);
-
-        services.addWin32InputOper(&log);
+        services.addAllThread(&log);
+        services.addAllOper(&log);
 
         std::cout<<"start services"<<std::endl;
         services.start(&log);

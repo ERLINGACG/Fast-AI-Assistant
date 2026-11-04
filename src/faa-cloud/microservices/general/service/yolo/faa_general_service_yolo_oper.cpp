@@ -3,17 +3,18 @@
 //
 #include "faa_cloud/common/yolo/faa_cloud_yolo_oper.h"
 #include "faa_cloud/microservices/general/service/faa_cloud_general.h"
-// #include "faa_core/fdnn/fcv/faa_dnn_cv_trt.h"
+#include "faa_cloud/common/frame/private/faa_cloud_frame_impl.h"
+
 using faa::cloud::microservices::general::FaaCloudGeneralServices;
 
 void FaaCloudGeneralServices::addYoloOper(info::log::Ilog* log) {
     this->operat.push("yolo",[this,log]
     (net_work::FaaCloudNetworkLoad& load,sockaddr_in response_addr){
 
-        log->debug("yolo to {}",load.unserialize().dump());
+        log->debug("yolo to {}",load.serialize().dump());
         auto param = load.body().data;
         cv::Mat frame;
-        this->cap.frame_resources.peek(frame);
+        this->cap.frame_resources.impl()->peek(frame);
 
         if (frame.empty()) {
             log->error("frame is empty");
@@ -61,7 +62,7 @@ void FaaCloudGeneralServices::addGetYoloModel(info::log::Ilog* log) {
     this->operat.push("get_yolo_model",[this,log]
     (net_work::FaaCloudNetworkLoad& load,sockaddr_in response_addr){
 
-        log->debug("get_yolo_model to {}",load.unserialize().dump());
+        log->debug("get_yolo_model to {}",load.serialize().dump());
 
         auto model_array = nlohmann::json::array();
         for (const auto& name : this->yolo_map | std::views::keys){
