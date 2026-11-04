@@ -1,0 +1,11 @@
+# ===== CMake / VS 构建产物 =====
+build/
+cmake-build-*/
+out/
+CMakeFiles/
+CMakeCache.txt
+CMakeUserPresets.json
+
+
+env_lib
+env_work_path
