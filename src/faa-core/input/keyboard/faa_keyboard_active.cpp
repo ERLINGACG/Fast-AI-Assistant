@@ -53,10 +53,10 @@ void FaaKeyboardInput::active() const {
         AttachThreadInput(currentThread, targetThread, FALSE);
     }
 
-    // 7. 打印结果
-    std::cout << "[activate] target=" << hwd_hwnd
-              << " foreground=" << GetForegroundWindow()
-              << " match=" << (hwd_hwnd == GetForegroundWindow())
-              << " iconic=" << IsIconic(hwd_hwnd)
-              << std::endl;
+    // // 7. 打印结果
+    // std::cout << "[activate] target=" << hwd_hwnd
+    //           << " foreground=" << GetForegroundWindow()
+    //           << " match=" << (hwd_hwnd == GetForegroundWindow())
+    //           << " iconic=" << IsIconic(hwd_hwnd)
+    //           << std::endl;
 }

@@ -57,10 +57,7 @@ void faa::cloud::microservices::base::service::netWorkLoop(
             } catch (std::exception& e) {
                 if (log) log->error("netWorkLoop error: {}", e.what());
             }
-
-
        });
-       // std::cout<<std::endl;
     }
 }
 

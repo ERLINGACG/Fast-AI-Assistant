@@ -28,23 +28,7 @@ namespace faa::cloud::microservices::base::resource
 
     };
 
-    struct Cap {
 
-        frame::Frames frame_resources;
-        std::mutex mutex;
-        std::string target;
-
-
-        auto set(const std::string& target) {
-            std::lock_guard lock(mutex);
-            this->target=target;
-        }
-
-        auto getTarget() {
-            std::lock_guard lock(mutex);
-            return this->target;
-        }
-    };
 
     struct ThreadsMap {
 
@@ -54,7 +38,6 @@ namespace faa::cloud::microservices::base::resource
             join,
             detach,
             none,
-
         };
 
         enum running_status {
@@ -97,7 +80,6 @@ namespace faa::cloud::microservices::base::resource
     template<typename... Args>
     struct OperatMap {
         std::map<std::string,std::function<int(Args...)>> map{};
-
         auto push(const std::string& name, std::function<int(Args...)> func) {
             map[name]=func;
         }

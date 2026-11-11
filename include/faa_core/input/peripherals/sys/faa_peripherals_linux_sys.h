@@ -4,5 +4,17 @@
 
 #ifndef FASTAIASSISTANT_ROOT_FAA_PERIPHERALS_LINUX_SYS_H
 #define FASTAIASSISTANT_ROOT_FAA_PERIPHERALS_LINUX_SYS_H
+namespace faa::core::input::peripherals::sys {
 
+    struct FaaPeripheralCtx {
+
+
+    };
+
+    struct FaaPeripheralsSys {
+
+        FaaPeripheralCtx ctx{};
+
+    };
+}
 #endif //FASTAIASSISTANT_ROOT_FAA_PERIPHERALS_LINUX_SYS_H

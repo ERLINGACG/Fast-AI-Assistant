@@ -31,7 +31,7 @@ void FaaCvTensorRtBackend::setInputLayerShape(FaaCvTensorRTCtx& ctx, const std::
 {
     auto it=type_map_v2.find(type);
     if(it==type_map_v2.end()){
-        if (logger) logger->error("type not found");
+        if (ilogger) ilogger->error("type not found");
         return;
     }
     gdlz::trt::icv::core::TensorRTCvCoreFramework::ResetInputLayer(
@@ -46,7 +46,7 @@ void FaaCvTensorRtBackend::setOutputLayerShape(FaaCvTensorRTCtx& ctx, const std:
                                                const std::string& type) const {
     auto it=type_map_v2.find(type);
     if(it==type_map_v2.end()){
-        if (logger) logger->error("type not found");
+        if (ilogger) ilogger->error("type not found");
         return;
     }
     gdlz::trt::icv::core::TensorRTCvCoreFramework::ResetOutputLayer(
@@ -80,16 +80,7 @@ void FaaCvTensorRtBackend::downloadBlob(FaaCvTensorRTCtx& ctx, const std::string
     const int elems = static_cast<int>(buffer.size() / sizeof(float));
     // 零拷贝：mat 直接引用 buffer 的 host 内存
     output.impl()->mat = cv::Mat(1, elems, CV_32F, buffer.host());
-    // if (logger) logger->debug("elems:{} first:{} last:{}",
-    //                          elems,
-    //                          static_cast<float*>(buffer.host())[0],
-    //                          static_cast<float*>(buffer.host())[elems - 1]);
 
-    // cv::Mat prob = output.impl()->mat.reshape(1, 640);   // 1×409600 → 640×640，零拷贝
-    // cv::Mat vis;
-    // prob.convertTo(vis, CV_8U, 255.0);                   // 0~1 → 0~255
-    //
-    // cv::imwrite("prob_det.png", vis);
 }
 
 void FaaCvTensorRtBackend::forward(FaaCvTensorRTCtx& ctx) const
@@ -97,4 +88,8 @@ void FaaCvTensorRtBackend::forward(FaaCvTensorRTCtx& ctx) const
     gdlz::trt::icv::core::TensorRTCvCoreFramework::Forward(
         ctx.getCtx().ctx
     );
+}
+
+std::vector<int64_t> FaaCvTensorRtBackend::getLayerShape(FaaCvTensorRTCtx& ctx, const std::string& layer_name) const {
+    return gdlz::trt::icv::core::TensorRTCvCoreFramework::GetLayerShape(layer_name.c_str(), ctx.getCtx().ctx);
 }

@@ -14,9 +14,9 @@ namespace faa::core::fdnn::backend::trt {
 
         std::unique_ptr<FaaCvTensorRTCtxImpl> ctx;
 
-        [[nodiscard]] auto& getCtx() const{
-            return *ctx;
-        }
+        [[nodiscard]] auto& getCtx() const{return *ctx;}
+
+        [[nodiscard]] bool  checkCtx() const { if (ctx) { return true; } else { return false; } }
         FaaCvTensorRTCtx();
         ~FaaCvTensorRTCtx();
         FaaCvTensorRTCtx(FaaCvTensorRTCtx&&) noexcept;

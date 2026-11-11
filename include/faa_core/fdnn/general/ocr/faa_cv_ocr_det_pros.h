@@ -18,5 +18,12 @@ namespace faa::core::fdnn::general::ocr {
         const FaaDetParam& param,
         FaaDetResults& results
     );
+
+    void FAA_CPP_EXPORT drawDetResults(
+        frame::FaaMat& orgImg,
+        const FaaDetResults& results,
+        bool is_save = false
+    );
+
 }
 #endif //FASTAIASSISTANT_ROOT_FAA_CV_OCR_PROS_H

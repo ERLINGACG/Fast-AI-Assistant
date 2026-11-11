@@ -88,6 +88,7 @@ void FaaMouseInput::moveMouse(const MouseMoveParams& params, FaaReturnMessage& m
                 }
             }
         } else {
+
             SetCursorPos(endScreen.x, endScreen.y);
         }
     };
@@ -108,7 +109,15 @@ void FaaMouseInput::moveMouse(const MouseMoveParams& params, FaaReturnMessage& m
     }
 
 }
-
+std::pair<int, int> FaaMouseInput::getMousePos(bool is_client) const
+{
+    POINT pt;
+    GetCursorPos(&pt);
+    if (is_client && this->sys->ctx.hwnd) {
+        ScreenToClient(this->sys->ctx.hwnd, &pt);
+    }
+    return {pt.x, pt.y};
+}
 
 #endif
 

@@ -10,6 +10,7 @@
 #include "faa_core/input/keyboard/faa_keyboard_params.h"
 #include "faa_core/input/public/faa_return_message.h"
 #include "info/ilog/ilog.h"
+#include "faa_common/ilogger/faa_ilogger.h"
 
 namespace faa::core::input::peripherals::sys
 {
@@ -23,8 +24,8 @@ namespace faa::core::input::keyboard {
     class FAA_CPP_EXPORT FaaKeyboardInput {
 
         std::unique_ptr<peripherals::sys::FaaPeripheralsSys> sys;
-        info::log::Ilog* logger = nullptr;
-
+        // info::log::Ilog* logger = nullptr;
+        common::ilogger::FaaIlogger* logger = nullptr;
 
         public:
             FaaKeyboardInput();
@@ -35,7 +36,7 @@ namespace faa::core::input::keyboard {
             FaaKeyboardInput& operator=(FaaKeyboardInput&&) noexcept;
             FaaKeyboardInput& operator=(const FaaKeyboardInput&) = delete;
 
-            void setLogger(info::log::Ilog* logger);
+            void setLogger(common::ilogger::FaaIlogger* logger);
             void resetTarget(const std::string& hwnd_name) const;
             void active() const;
             void apply(const FaaKeyboardParams& params, FaaReturnMessage& message) const;

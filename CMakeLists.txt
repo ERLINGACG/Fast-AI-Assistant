@@ -26,6 +26,8 @@ set(CUDA_INCLUDE_PATH CACHE PATH "Path to CUDA include directory")
 set(CPP_YAML_INCLUDE_PATH CACHE PATH "Path to cpp-yaml include directory")
 set(CPP_YAML_LIB_PATH CACHE PATH "Path to cpp-yaml library directory")
 
+set(FFMPEG_INCLUDE_PATH CACHE PATH "Path to ffmpeg include directory")
+set(FFMPEG_LIB_PATH CACHE PATH "Path to ffmpeg library directory")
 #set(TensorRT_LIB_PATH CACHE PATH "Path to TensorRT library directory")
 
 
@@ -48,6 +50,10 @@ message("CUDA_INCLUDE_PATH: ${CUDA_INCLUDE_PATH}")
 message("CPP_YAML_INCLUDE_PATH: ${CPP_YAML_INCLUDE_PATH}")
 message("CPP_YAML_LIB_PATH: ${CPP_YAML_LIB_PATH}")
 
+message("FFMPEG_INCLUDE_PATH: ${FFMPEG_INCLUDE_PATH}")
+message("FFMPEG_LIB_PATH: ${FFMPEG_LIB_PATH}")
+
+
 
 set(SRC_INCLUDE_DIRS
         ${OpenCV_INCLUDE_PATH}
@@ -67,3 +73,4 @@ set(LINK_LIB_NAME
 
 add_subdirectory(src/faa-core)
 add_subdirectory(src/faa-cloud)
+add_subdirectory(src/faa-test)

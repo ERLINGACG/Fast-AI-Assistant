@@ -17,7 +17,11 @@ void FaaOcrDetModel::setConfig(const nlohmann::json& config)
     FaaDnnModelBase::setConfig(config);
     const auto means    = this->config.value("mean",nlohmann::json::object());
     const auto img_size = this->config.value("img_size",nlohmann::json::object());
+    auto x              = this->config.value("import_layer",nlohmann::json::object());
+    auto fetch_name_0   = this->config.value("exit_layer",nlohmann::json::object());
 
+    if (ilogger) ilogger->debug("\n the x is {}",x.dump(2));
+    if (ilogger) ilogger->debug("the fetch_name_0 is {}",fetch_name_0.dump(2));
 
     this->mean.b        = means.value("b",0.0);
     this->mean.g        = means.value("g",0.0);
@@ -25,13 +29,6 @@ void FaaOcrDetModel::setConfig(const nlohmann::json& config)
     this->img_h         = img_size.value("h",640);
     this->img_w         = img_size.value("w",640);
     this->scalefactor   = this->config.value("scale",1.0);
-
-    auto x            = this->config.value("import_layer",nlohmann::json::object());
-    auto fetch_name_0 = this->config.value("exit_layer",nlohmann::json::object());
-
-    if (logger) logger->debug("the x is {}",x.dump(2));
-    if (logger) logger->debug("the fetch_name_0 is {}",fetch_name_0.dump(2));
-
 
     layer::build_InputLayer_to_json(this->x,x);
     layer::build_OutputLayer_to_json(this->fetch_name_0,fetch_name_0);
@@ -51,13 +48,13 @@ void FaaOcrDetModel::run(
                  run0(img, param, results);
              }
              if constexpr (std::is_same_v<T, backend::kOnnxRT>) {
-                 if (logger) logger->info("the backend is onnxRT, but is not implemented");
+                 if (ilogger) ilogger->info("the backend is onnxRT, but is not implemented");
                  throw std::runtime_error("ONNX backend not implemented");
              }
 
         }, this->type);
     } catch (const std::exception& e) {
-       if (logger) logger->error("run ocr det model failed: {}",e.what());
+       if (ilogger) ilogger->error("run ocr det model failed: {}",e.what());
     }
 }
 
@@ -66,7 +63,6 @@ void FaaOcrDetModel::run0(
     const FaaDetRunParam& param,
     general::ocr::FaaDetResults& results
 ) {
-
 
     FaaMat blob;
     FaaMat output;
@@ -84,8 +80,9 @@ void FaaOcrDetModel::run0(
         }
     );
     getBackend0().setInputLayerShape  (x.name,x.opt_shape);
-    getBackend0().setOutputLayerShape (fetch_name_0.name, fetch_name_0.dtype);
-
+    getBackend0().setOutputLayerShape (
+        fetch_name_0.name, fetch_name_0.dtype
+    );
     getBackend0().uploadBlob(x.name,blob);
     getBackend0().forward();
     getBackend0().downloadBlob(
@@ -102,8 +99,6 @@ void FaaOcrDetModel::run0(
         results
     );
     if (param.isSave){
-        if (!img.write("test.png")){
-            this->logger->error("save image failed");
-        }
+        general::ocr::drawDetResults(img, results, true);
     }
 }

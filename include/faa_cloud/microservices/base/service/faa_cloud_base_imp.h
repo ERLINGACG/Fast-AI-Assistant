@@ -17,15 +17,7 @@ namespace faa::cloud::microservices::base
         return static_cast<T&>(*this);;
     }
 
-    template <typename T>
-    T& FaaCloudBaseServices<T>::setResourceConfig(nlohmann::json& config,info::log::Ilog* log) {
-        if(log) {
-            log->debug("set resource config");
 
-        }
-        this->cv_resource.setConfig(config).load(log);
-        return static_cast<T&>(*this);;
-    }
 
     template <typename T>
     T& FaaCloudBaseServices<T>::setNetwork(std::unique_ptr<net_work::FaaCloudNetwork> network,info::log::Ilog* log) {
@@ -82,7 +74,6 @@ namespace faa::cloud::microservices::base
     T& FaaCloudBaseServices<T>::close() {
 
         this->signals.set(isRunning,   false);
-        this->signals.set(isCapStarted,false);
         return static_cast<T&>(*this);
     }
 

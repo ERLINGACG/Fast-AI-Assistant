@@ -14,18 +14,26 @@ namespace faa::core::fdnn::backend {
     template <typename B, typename C>
     class FAA_CPP_EXPORT FaaBackend {
 
-        info::log::Ilog* logger=nullptr;
+        // info::log::Ilog* logger=nullptr;
+        common::ilogger::FaaIlogger* ilogger=nullptr;
+
         nlohmann::json config{};
-        B backend;
+        std::shared_ptr<B> backend;
         C ctx;
 
 
     public:
-        FaaBackend() = default;
-        void setLogger(info::log::Ilog* logger);
+        FaaBackend();
+        // void setLogger(info::log::Ilog* logger);
+        void setLogger(common::ilogger::FaaIlogger* ilogger);
         void setConfig(nlohmann::json& config);
         void getEngineInfo();
-        void init();
+
+        void initBackend(std::shared_ptr<B> backend);
+        void initBackend();
+
+        void initCtx();
+        void initCtx(C& ctx);
 
         template <typename... Args>
         void setInputLayerShape(std::string layer_name,std::vector<int64_t> shape , Args&&... args);
@@ -42,6 +50,9 @@ namespace faa::core::fdnn::backend {
         template <typename... Args>
         void downloadBlob(std::string layer_name, frame::FaaMat& output,std::string type, Args&&... args);
 
+        C& getCtx();
+        std::shared_ptr<B>&  getBackend();
+        std::vector<int64_t> getLayerShape(std::string layer_name);
     };
 
 }

@@ -9,22 +9,32 @@ using faa::core::fdnn::backend::trt::TensorRTFrameworkImpl;
 using faa::core::fdnn::backend::trt::FaaCvTensorRTCtxImpl;
 
 
-void FaaCvTensorRtBackend::init(FaaCvTensorRTCtx& ctx) {
+void FaaCvTensorRtBackend::initCtx(FaaCvTensorRTCtx& ctx) {
 
     auto model_config_path = config.value("model_config_path", "");
     if (model_config_path.empty()) {
-        if (logger) logger->error("model_config_path is empty");
+        if (ilogger) ilogger->error("model_config_path is empty");
         return;
     }
-    engine->init(model_config_path);
     engine->getFramework().CreateCtx(ctx.getCtx().ctx);
     if (!engine->isInit()) {
-        if (logger) logger->error("init model failed: {}", model_config_path);
+        if (ilogger) ilogger->error("init model failed: {}", model_config_path);
         return;
     }
-    if (logger) logger->debug("init model success: {}", model_config_path);
+    // std::cout<<"init model success: "<<model_config_path<<std::endl;
+    if (ilogger) ilogger->debug("init model success: {}", model_config_path);
 
 }
 void FaaCvTensorRtBackend::getEngineInfo() {
     engine->getFramework().GetEngineInfo();
+}
+
+void FaaCvTensorRtBackend::initBackend()
+{
+    auto model_config_path = config.value("model_config_path", "");
+    if (model_config_path.empty()) {
+        if (ilogger) ilogger->error("model_config_path is empty");
+        return;
+    }
+    engine->init(model_config_path);
 }

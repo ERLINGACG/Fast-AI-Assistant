@@ -16,7 +16,10 @@ namespace faa::core::fdnn::model::ocr {
 
          general::ocr::FaaDetParam param{};
          bool isSave = false;
+
       };
+
+
 
       class FAA_CPP_EXPORT FaaOcrDetModel : public base::FaaDnnModelBase {
 

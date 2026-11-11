@@ -4,8 +4,7 @@
 
 #ifndef FASTAIASSISTANT_ROOT_FAA_OCR_DET_PARAM_H
 #define FASTAIASSISTANT_ROOT_FAA_OCR_DET_PARAM_H
-#include "faa_core/fdnn/general/blob/faa_cv_set_blob.h"
-
+#include <vector>
 namespace faa::core::fdnn::general::ocr {
 
     struct FaaDetParam {
@@ -23,6 +22,7 @@ namespace faa::core::fdnn::general::ocr {
             int32_t y;
             int32_t w;
             int32_t h;
+            double score;
         } ;
 
         std::vector<Item> items;

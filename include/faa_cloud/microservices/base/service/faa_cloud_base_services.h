@@ -23,37 +23,28 @@ namespace faa::cloud::microservices::base {
     public:
 
             const char* isRunning    = "isRunning";  // 类型是 const char[9]
-            const char* isCapStarted = "isStarted";
-
 
     protected:
-        using FaaCvResource = core::fcv::resources::FaaCvResource;
 
         nlohmann::json config{};
 
 
         command::FaaCommandTree cmd{};
         core::thread_pool::FAAThreadPool thread_pool{};
-
         resource::SignalMap  signals{};
         resource::Network    network{};
         resource::ThreadsMap threads{};
-        resource::Cap        cap{};
-        FaaCvResource        cv_resource{};
 
 
         resource::OperatMap<
             net_work::FaaCloudNetworkRequest&
         > operat{};
 
-
-
     public:
         T& setConfig        (nlohmann::json& config,info::log::Ilog* log = nullptr);
-        T& setResourceConfig(nlohmann::json& config,info::log::Ilog* log = nullptr);
         T& setNetwork(std::unique_ptr<net_work::FaaCloudNetwork> network,info::log::Ilog* log = nullptr);
 
-        T& setSignal (const std::string& name,bool value);
+        T& setSignal     (const std::string& name,bool value);
         T& registerDefine(info::log::Ilog* log = nullptr);
 
         T& init ();

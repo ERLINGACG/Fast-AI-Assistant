@@ -26,7 +26,7 @@ FaaKeyboardInput::~FaaKeyboardInput() =default;
 FaaKeyboardInput::FaaKeyboardInput(FaaKeyboardInput&&) noexcept = default;
 FaaKeyboardInput& FaaKeyboardInput::operator=(FaaKeyboardInput&&) noexcept = default;
 
-void FaaKeyboardInput::setLogger(info::log::Ilog* logger){
+void FaaKeyboardInput::setLogger(common::ilogger::FaaIlogger* logger){
     this->logger = logger;
 
 }

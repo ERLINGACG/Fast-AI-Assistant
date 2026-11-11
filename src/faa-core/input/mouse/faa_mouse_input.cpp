@@ -51,15 +51,16 @@ void FaaMouseInput::apply(const FaaMouseParams& params, FaaReturnMessage& msg) c
             msg.error = "mouseInput is not init";
             return;
         }
-        std::visit([this,&msg]<typename T0>(T0&& arg) {                 // ① 接收 variant 的值
-                using T = std::decay_t<T0>;      // ② 推导实际类型
-                if constexpr (std::is_same_v<T, MouseClickParams>)
-                    clickMouse(arg, msg);                   // ③ 传具体类型
-                else if constexpr (std::is_same_v<T, MouseMoveParams>)
-                    moveMouse(arg, msg);
+    std::visit([this, &msg]<typename T0>(T0&& arg) {
+        using T = std::decay_t<T0>;
+        if constexpr (std::is_same_v<T, MouseClickParams>)
+            clickMouse(arg, msg);        // ← 用 arg
+        else if constexpr (std::is_same_v<T, MouseMoveParams>)
+            moveMouse(arg, msg);         // ← 用 arg
+        else if constexpr  (std::is_same_v<T, MouseDragParams>)
+            dragMouse(arg, msg);         // ← 用 arg
         }, params);
-
-}
+    }
 
 bool FaaMouseInput::isInit() const{
     return this->sys->ctx.hwnd != nullptr;

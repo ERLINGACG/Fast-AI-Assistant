@@ -25,6 +25,18 @@ function(ocr_det_test)
 )
 endfunction()
 
+function(mixformer_v2_test)
+    add_executable(faa_mixformer_v2_test faa_mixformer_v2_model_test.cpp)
+    add_definitions(-DNOMINMAX)
+    add_dependencies          (faa_mixformer_v2_test FaaCore)
+    target_include_directories(faa_mixformer_v2_test PUBLIC ${FAA-C-INCLUDE_DIRS})
+    target_link_directories   (faa_mixformer_v2_test PUBLIC ${FAA-C-LIBRARIES})
+    target_link_libraries(
+            faa_mixformer_v2_test PUBLIC
+            ${FAA-C-LINK_LIB_NAME} FaaCore
+)
+endfunction()
 
 ocr_det_test()
+mixformer_v2_test()
 

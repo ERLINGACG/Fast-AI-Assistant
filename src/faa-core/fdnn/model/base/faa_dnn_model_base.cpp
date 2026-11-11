@@ -2,23 +2,45 @@
 // Created by HP on 2026/11/3.
 //
 #include "faa_core/fdnn/model/base/faa_dnn_model_base.h"
+
+#include "faa_core/fdnn/backend/faa_backend_type_oper.h"
 using faa::core::fdnn::model::base::FaaDnnModelBase;
 
 void FaaDnnModelBase::setConfig(const nlohmann::json& config) {
     this ->config = config;
-
-}
-void FaaDnnModelBase::setLogger(info::log::Ilog* logger) {
-    this ->logger = logger;
-
 }
 
+// void FaaDnnModelBase::setLogger(info::log::Ilog* logger) {
+//     this ->logger = logger;
+// }
+
+void FaaDnnModelBase::setLogger(common::ilogger::FaaIlogger* ilogger) {
+    this ->ilogger = ilogger;
+}
+
+
+void FaaDnnModelBase::shapeInit(FaaDnnModelBase& provider)
+{
+    backend::visit_to_type(
+        this->type,
+        [this, &provider]() {
+            this->getBackend0().initBackend(
+                provider.getBackend0().getBackend()
+            );
+
+            this->initCtx();
+        },
+        [this]() {
+            if (ilogger) ilogger->info("the backend is onnxRT, but is not implemented");
+            throw std::runtime_error("ONNX backend not implemented");
+        }
+    );
+}
 bool FaaDnnModelBase::checkBackend(backend::FaaDnnBackEndType type) const {
     return type.index() == this->type.index();
 }
 
-void FaaDnnModelBase::setBackend(const std::string& type)
-{
+void FaaDnnModelBase::setBackend(const std::string& type) {
     auto it = backend::FaaDnnBackEndTypeMap.find(type);
     if (it != backend::FaaDnnBackEndTypeMap.end()){
         this->type = it->second;
@@ -27,37 +49,49 @@ void FaaDnnModelBase::setBackend(const std::string& type)
     }
 }
 
-void FaaDnnModelBase::printInfo()
-{
-    std::visit([this]<typename T0>(T0&& tag) {
+void FaaDnnModelBase::printInfo() {
 
-         using T = std::decay_t<T0>;
-         if constexpr (std::is_same_v<T, backend::kTensorRT>){
-             this->backend_0.getEngineInfo();
-         }
-         if constexpr (std::is_same_v<T, backend::kOnnxRT>) {
-             if (logger) logger->info("the backend is onnxRT, but is not implemented");
-             throw std::runtime_error("ONNX backend not implemented");
-         }
-
-    }, this->type);
+    backend::visit_to_type(
+    this->type,
+        [this](){
+            this->backend_0.getEngineInfo();
+        },
+        [this]() {
+            if (ilogger) ilogger->info("the backend is onnxRT, but is not implemented");
+            throw std::runtime_error("ONNX backend not implemented");
+        }
+    );
 }
 
-void FaaDnnModelBase::init() {
+void FaaDnnModelBase::initBackend()
+{
 
-    std::visit([this]<typename T0>(T0&& tag) {
+    backend::visit_to_type(
+        this->type,
+        [this](){
+            this->backend_0.setLogger (this->ilogger);
+            this->backend_0.setConfig (this->config);
+            this->backend_0.initBackend();
+        },
+        [this]() {
+            if (ilogger) ilogger->info("the backend is onnxRT, but is not implemented");
+            throw std::runtime_error("ONNX backend not implemented");
+        }
+    );
 
-         using T = std::decay_t<T0>;
-         if constexpr (std::is_same_v<T, backend::kTensorRT>){
-             if (logger) logger->debug("the backend is init to  tensorRT config");
-             this->backend_0.setLogger (this->logger);
-             this->backend_0.setConfig (this->config);
-             this->backend_0.init();
-         }
-         if constexpr (std::is_same_v<T, backend::kOnnxRT>) {
-             if (logger) logger->info("the backend is onnxRT, but is not implemented");
-             throw std::runtime_error("ONNX backend not implemented");
-         }
+}
 
-    }, this->type);
+void FaaDnnModelBase::initCtx() {
+
+
+    backend::visit_to_type(
+        this->type,
+        [this](){
+            this->backend_0.initCtx();
+        },
+        [this]() {
+            if (ilogger) ilogger->info("the backend is onnxRT, but is not implemented");
+            throw std::runtime_error("ONNX backend not implemented");
+        }
+    );
 }

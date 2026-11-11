@@ -95,4 +95,6 @@ void FaaMouseInput::clickMouse(const MouseClickParams& params, FaaReturnMessage&
     // if (this->logger) logger->debug("is test function to clickMouse is jump");
 
 }
+
+
 #endif
